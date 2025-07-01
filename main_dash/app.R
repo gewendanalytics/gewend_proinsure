@@ -1,21 +1,15 @@
-
-
-# app.R
+# app.R - Tam Düzeltilmiş Versiyon
 
 # Dosya ve veri yönetimi fonksiyonları
-# Veri saklama için dosya yolu
 data_file <- "data/proinsure_data.csv"
 
-# Klasör oluşturma kontrolü
 if (!dir.exists("data")) {
   dir.create("data")
 }
 
-# Veri yükleme fonksiyonu
 load_data <- function(file) {
   if (file.exists(file)) {
     data <- read.csv(file, stringsAsFactors = FALSE)
-    # Duration ve ID kolonları yoksa ekle
     if (!"Duration" %in% names(data)) {
       data$Duration <- 1
     }
@@ -49,12 +43,10 @@ load_data <- function(file) {
   }
 }
 
-# Veri kaydetme fonksiyonu
 save_data <- function(data, file) {
   write.csv(data, file, row.names = FALSE)
 }
 
-# Benzersiz ID oluşturma
 generate_id <- function() {
   letters <- sample(LETTERS, 2, replace = TRUE)
   numbers <- sample(0:9, 3, replace = TRUE)
@@ -64,7 +56,7 @@ generate_id <- function() {
 
 # Gerekli kütüphaneleri yükleyelim
 library(shiny)
-library(shinydashboard)
+library(shinydashboard)  
 library(shinyWidgets)
 library(shinythemes)
 library(shinyauthr)
@@ -72,7 +64,6 @@ library(plotly)
 library(DT)
 library(fresh)
 library(tibble)
-library(dplyr)
 library(scales)
 library(lubridate)
 library(ggplot2)
@@ -80,7 +71,6 @@ library(shinyBS)
 library(reactable)
 library(formattable)
 library(shinyalert)
-library(tidyverse)
 library(kableExtra)
 library(flextable)
 library(tidyquant)
@@ -88,1095 +78,27 @@ library(markdown)
 library(shinyjs)
 library(readxl)
 library(waiter)
-
+library(writexl)
+library(dplyr)
+library(tidyverse)
 
 Sys.setlocale(locale = "Turkish")
 
 # 2.0 LOAD SOURCES & DATA ----
 
-
-source("../PROINSURE_GEWEND/modules/module_login.R")
-
-# Futuristik Dijital PROINSURE CSS ----
-my_css <- "
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-  
-  :root {
-    /* Futuristik Digital Color Palette */
-    --cyber-blue: #00d4ff;
-    --electric-purple: #8b5cf6;
-    --neon-pink: #ff0080;
-    --plasma-orange: #ff6b35;
-    --quantum-green: #00ff88;
-    --digital-teal: #06ffa5;
-    --aurora-blue: #0099ff;
-    --matrix-green: #00ff41;
-    
-    /* Backgrounds */
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #1a1f2e;
-    --bg-tertiary: #2a2f3e;
-    --surface: rgba(255, 255, 255, 0.05);
-    --surface-glass: rgba(255, 255, 255, 0.1);
-    --surface-hover: rgba(255, 255, 255, 0.15);
-    
-    /* Text Colors */
-    --text-primary: #ffffff;
-    --text-secondary: #b0b7c3;
-    --text-accent: #00d4ff;
-    --text-muted: #6b7280;
-    
-    /* Effects */
-    --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
-    --glow-purple: 0 0 20px rgba(139, 92, 246, 0.3);
-    --glow-pink: 0 0 20px rgba(255, 0, 128, 0.3);
-    --glow-green: 0 0 20px rgba(0, 255, 136, 0.3);
-    --shadow-digital: 0 8px 32px rgba(0, 212, 255, 0.15);
-    --shadow-cyber: 0 16px 48px rgba(139, 92, 246, 0.2);
-    
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-  }
-  
-  /* Base Styles - Futuristik */
-  body { 
-    background: 
-      radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
-      linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-    margin: 0; 
-    padding: 0;
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-  }
-
-  /* Animated Background */
-  #canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    opacity: 0.4;
-  }
-
-  /* Futuristik Header */
-  .header-container {
-    background: rgba(26, 31, 46, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 2px solid;
-    border-image: linear-gradient(90deg, var(--cyber-blue), var(--neon-pink), var(--electric-purple)) 1;
-    box-shadow: var(--shadow-digital);
-    padding: 20px 24px;
-    margin-bottom: 32px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  
-  .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .logo-section h1 {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--neon-pink) 50%, var(--electric-purple) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -0.025em;
-    text-shadow: var(--glow-cyan);
-    animation: pulse-glow 3s ease-in-out infinite alternate;
-  }
-  
-  @keyframes pulse-glow {
-    from { filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.3)); }
-    to { filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6)); }
-  }
-  
-  .logo-section p {
-    color: var(--text-secondary);
-    margin: 4px 0 0 0;
-    font-size: 1rem;
-    font-weight: 500;
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Main Layout - Full Width Cyber */
-  .main-layout {
-    background: rgba(26, 31, 46, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.2);
-    border-radius: var(--radius-xl);
-    margin: 0 16px 32px;
-    padding: 32px;
-    box-shadow: var(--shadow-cyber), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    min-height: calc(100vh - 180px);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .main-layout::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--cyber-blue) 0%, var(--neon-pink) 50%, var(--electric-purple) 100%);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  }
-
-  /* Cyber Sidebar */
-  .sidebar-container {
-    width: 340px;
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--glow-cyan), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    margin-right: 32px;
-    overflow: hidden;
-    height: fit-content;
-    position: sticky;
-    top: 32px;
-  }
-  
-  .sidebar-header {
-    padding: 24px;
-    text-align: center;
-    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-    color: var(--text-primary);
-  }
-  
-  .sidebar-header h4 {
-    color: var(--text-primary);
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    font-size: 1.125rem;
-    text-shadow: var(--glow-cyan);
-  }
-  
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, var(--quantum-green) 0%, var(--digital-teal) 100%);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--bg-primary);
-    box-shadow: var(--glow-green);
-    animation: pulse-status 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulse-status {
-    0%, 100% { transform: scale(1); box-shadow: var(--glow-green); }
-    50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 255, 136, 0.5); }
-  }
-  
-  .sidebar-content {
-    padding: 24px;
-  }
-  
-  .control-group {
-    margin-bottom: 24px;
-    padding: 20px;
-    background: rgba(0, 212, 255, 0.05);
-    border: 1px solid rgba(0, 212, 255, 0.2);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .control-group::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--cyber-blue), transparent);
-  }
-  
-  .control-group:hover {
-    background: rgba(0, 212, 255, 0.1);
-    border-color: rgba(0, 212, 255, 0.4);
-    transform: translateY(-2px);
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .control-label {
-    color: var(--text-accent);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 12px;
-    display: block;
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Tablo Seçim Butonları */
-  .table-selection-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  
-  .table-btn {
-    padding: 10px 12px !important;
-    font-size: 11px !important;
-    background: rgba(0, 212, 255, 0.1) !important;
-    color: var(--text-secondary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3) !important;
-    border-radius: var(--radius-md) !important;
-    transition: all 0.3s ease !important;
-    backdrop-filter: blur(10px) !important;
-    text-align: center !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    min-height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  
-  .table-btn:hover {
-    background: rgba(0, 212, 255, 0.2) !important;
-    color: var(--cyber-blue) !important;
-    border-color: rgba(0, 212, 255, 0.5) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--glow-cyan) !important;
-  }
-  
-  .table-btn.active {
-    background: linear-gradient(135deg, var(--quantum-green) 0%, var(--digital-teal) 100%) !important;
-    color: var(--bg-primary) !important;
-    border-color: transparent !important;
-    box-shadow: var(--glow-green) !important;
-    transform: translateY(-1px) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Rapor Türü Grid */
-  .rapor-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  
-  .rapor-btn {
-    padding: 8px 12px !important;
-    font-size: 10px !important;
-    background: rgba(0, 212, 255, 0.1) !important;
-    color: var(--text-secondary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3) !important;
-    border-radius: var(--radius-md) !important;
-    transition: all 0.3s ease !important;
-    backdrop-filter: blur(10px) !important;
-    text-align: center !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    min-height: 35px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1.2 !important;
-  }
-  
-  .rapor-btn:hover {
-    background: rgba(0, 212, 255, 0.2) !important;
-    color: var(--cyber-blue) !important;
-    border-color: rgba(0, 212, 255, 0.5) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--glow-cyan) !important;
-  }
-  
-  .rapor-btn.active {
-    background: linear-gradient(135deg, var(--neon-pink) 0%, var(--plasma-orange) 100%) !important;
-    color: var(--text-primary) !important;
-    border-color: transparent !important;
-    box-shadow: var(--glow-pink) !important;
-    transform: translateY(-1px) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Futuristik Cards */
-  .modern-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.2);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-digital), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    margin-bottom: 24px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-  
-  .modern-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--cyber-blue) 0%, var(--neon-pink) 50%, var(--electric-purple) 100%);
-  }
-  
-  .modern-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--glow-cyan), var(--shadow-cyber);
-    border-color: rgba(0, 212, 255, 0.5);
-    background: rgba(255, 255, 255, 0.12);
-  }
-  
-  .card-header {
-    padding: 24px 32px;
-    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-    backdrop-filter: blur(10px);
-  }
-  
-  .card-header h4 {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 1.25rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-shadow: var(--glow-cyan);
-  }
-  
-  .card-header h4 i {
-    color: var(--cyber-blue);
-    font-size: 1.125rem;
-    filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.5));
-  }
-  
-  .card-body {
-    padding: 32px;
-    color: var(--text-primary);
-  }
-
-  /* Cyber Form Elements */
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .form-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-accent) !important;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    text-shadow: var(--glow-cyan);
-  }
-  
-  .form-control {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text-primary) !important;
-    transition: all 0.3s ease;
-    font-weight: 400;
-    line-height: 1.5;
-    backdrop-filter: blur(10px);
-  }
-  
-  .form-control:focus {
-    outline: none;
-    border-color: var(--cyber-blue) !important;
-    box-shadow: var(--glow-cyan);
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: var(--text-primary) !important;
-    transform: translateY(-1px);
-  }
-  
-  .form-control::placeholder {
-    color: var(--text-muted) !important;
-    font-weight: 400;
-  }
-
-  /* Futuristik Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    line-height: 1.5;
-    letter-spacing: 0.01em;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
-  
-  .btn:hover::before {
-    left: 100%;
-  }
-  
-  .btn-primary {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    color: var(--text-primary) !important;
-    box-shadow: var(--glow-cyan);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-  }
-  
-  .btn-primary:hover {
-    background: linear-gradient(135deg, var(--neon-pink) 0%, var(--plasma-orange) 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--glow-pink);
-    color: var(--text-primary) !important;
-  }
-  
-  .btn-success {
-    background: linear-gradient(135deg, var(--quantum-green) 0%, var(--digital-teal) 100%);
-    color: var(--bg-primary) !important;
-    box-shadow: var(--glow-green);
-  }
-  
-  .btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
-    color: var(--bg-primary) !important;
-  }
-  
-  .btn-warning {
-    background: linear-gradient(135deg, var(--plasma-orange) 0%, #fbbf24 100%);
-    color: var(--text-primary) !important;
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
-  }
-  
-  .btn-warning:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(255, 107, 53, 0.5);
-    color: var(--text-primary) !important;
-  }
-  
-  .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    color: var(--text-primary) !important;
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-  }
-  
-  .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
-    color: var(--text-primary) !important;
-  }
-  
-  .btn-block {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Cyber Radio Buttons */
-  .btn-group-toggle .btn {
-    background: rgba(0, 212, 255, 0.1) !important;
-    color: var(--text-secondary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3) !important;
-    padding: 10px 18px;
-    font-size: 13px;
-    border-radius: var(--radius-md);
-    margin: 0 2px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-  }
-  
-  .btn-group-toggle .btn.active {
-    background: linear-gradient(135deg, var(--quantum-green) 0%, var(--digital-teal) 100%) !important;
-    color: var(--bg-primary) !important;
-    border-color: transparent !important;
-    box-shadow: var(--glow-green);
-    transform: translateY(-1px);
-    font-weight: 600;
-  }
-  
-  .btn-group-toggle .btn:hover {
-    background: rgba(0, 212, 255, 0.2) !important;
-    color: var(--cyber-blue) !important;
-    border-color: rgba(0, 212, 255, 0.5) !important;
-    transform: translateY(-1px);
-    box-shadow: var(--glow-cyan);
-  }
-
-  /* Futuristik Tabs */
-  .nav-tabs {
-    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-    margin-bottom: 0;
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(15px);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: 8px 8px 0 8px;
-  }
-  
-  .nav-tabs > li > a {
-    color: var(--text-secondary) !important;
-    border: none;
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    padding: 16px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    background: transparent;
-    transition: all 0.3s ease;
-    margin-right: 4px;
-    letter-spacing: 0.01em;
-  }
-  
-  .nav-tabs > li > a:hover {
-    background: rgba(0, 212, 255, 0.1);
-    color: var(--cyber-blue) !important;
-    transform: translateY(-2px);
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .nav-tabs > li.active > a {
-    color: var(--text-primary) !important;
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    border: none;
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .tab-content {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    padding: 32px;
-    border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
-    border: 1px solid rgba(0, 212, 255, 0.2);
-    box-shadow: var(--shadow-digital);
-    color: var(--text-primary);
-  }
-
-  /* Cyber Data Tables */
-  .dataTables_wrapper {
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-digital);
-    color: var(--text-primary);
-  }
-  
-  .dataTables_wrapper .dataTables_length,
-  .dataTables_wrapper .dataTables_filter,
-  .dataTables_wrapper .dataTables_info,
-  .dataTables_wrapper .dataTables_paginate {
-    padding: 16px 20px;
-    background: rgba(0, 212, 255, 0.05);
-    color: var(--text-primary) !important;
-  }
-  
-  .dataTables_wrapper .dataTables_filter input {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    padding: 8px 12px;
-    transition: all 0.3s ease;
-  }
-  
-  .dataTables_wrapper .dataTables_filter input:focus {
-    border-color: var(--cyber-blue);
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .dataTables_wrapper .dataTables_length select {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    padding: 6px 10px;
-  }
-  
-  .dataTables_wrapper .dataTables_paginate .paginate_button {
-    background: rgba(0, 212, 255, 0.1);
-    color: var(--text-primary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    margin: 0 2px;
-    padding: 8px 12px;
-    transition: all 0.3s ease;
-  }
-  
-  .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    color: var(--text-primary) !important;
-    transform: translateY(-1px);
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background: linear-gradient(135deg, var(--neon-pink) 0%, var(--plasma-orange) 100%);
-    color: var(--text-primary) !important;
-    box-shadow: var(--glow-pink);
-  }
-  
-  table.dataTable thead th {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    color: var(--text-primary) !important;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 16px 12px;
-    border: none;
-  }
-  
-  table.dataTable tbody td {
-    padding: 14px 12px;
-    font-size: 14px;
-    color: var(--text-primary) !important;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-  }
-  
-  table.dataTable tbody tr {
-    background: rgba(0, 212, 255, 0.02);
-    transition: all 0.3s ease;
-  }
-  
-  table.dataTable tbody tr:hover {
-    background: rgba(0, 212, 255, 0.1);
-    transform: translateY(-1px);
-  }
-  
-  table.dataTable tbody tr:nth-child(even) {
-    background: rgba(0, 212, 255, 0.05);
-  }
-
-  /* Cyber Wells */
-  .well {
-    background: rgba(26, 31, 46, 0.8) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-digital), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    color: var(--text-primary) !important;
-  }
-  
-  .well:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glow-cyan), var(--shadow-cyber);
-    border-color: rgba(0, 212, 255, 0.5);
-    background: rgba(26, 31, 46, 0.9) !important;
-  }
-  
-  .well label,
-  .well p,
-  .well span,
-  .well div,
-  .well strong {
-    color: var(--text-primary) !important;
-    font-weight: 500;
-    font-size: 14px;
-    margin-bottom: 8px;
-    letter-spacing: 0.01em;
-  }
-  
-  .well h6 {
-    color: var(--cyber-blue) !important;
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 16px;
-    letter-spacing: 0.01em;
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Cyber Collapsible Panels */
-  .collapsible-btn {
-    width: 100%;
-    text-align: left;
-    background: rgba(26, 31, 46, 0.8);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    padding: 16px 20px;
-    color: var(--text-primary) !important;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-digital);
-    letter-spacing: 0.01em;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .collapsible-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
-    transition: left 0.6s ease;
-  }
-  
-  .collapsible-btn:hover::before {
-    left: 100%;
-  }
-  
-  .collapsible-btn:hover {
-    background: rgba(26, 31, 46, 0.9);
-    transform: translateY(-2px);
-    box-shadow: var(--glow-cyan);
-    color: var(--cyber-blue) !important;
-    border-color: var(--cyber-blue);
-  }
-  
-  .collapsible-content {
-    background: rgba(26, 31, 46, 0.8) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: var(--shadow-digital);
-    color: var(--text-primary) !important;
-  }
-  
-  .collapsible-content *,
-  .collapsible-content label,
-  .collapsible-content p,
-  .collapsible-content div,
-  .collapsible-content strong,
-  .collapsible-content span {
-    color: var(--text-primary) !important;
-  }
-  
-  .collapsible-content h6 {
-    color: var(--cyber-blue) !important;
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 16px;
-    letter-spacing: 0.01em;
-    text-shadow: var(--glow-cyan);
-  }
-
-  /* Cyber Selectize */
-  .selectize-input {
-    border: 1px solid rgba(0, 212, 255, 0.3) !important;
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text-primary) !important;
-    font-size: 14px;
-    min-height: auto;
-    transition: all 0.3s ease;
-    font-weight: 400;
-    backdrop-filter: blur(10px);
-  }
-  
-  .selectize-input.focus {
-    border-color: var(--cyber-blue) !important;
-    box-shadow: var(--glow-cyan);
-    background: rgba(255, 255, 255, 0.1) !important;
-  }
-  
-  .selectize-input input {
-    color: var(--text-primary) !important;
-  }
-  
-  .selectize-input .item {
-    color: var(--text-primary) !important;
-  }
-  
-  .selectize-dropdown {
-    background: rgba(26, 31, 46, 0.95) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.4);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-cyber);
-    overflow: hidden;
-    z-index: 9999;
-  }
-  
-  .selectize-dropdown-content .option {
-    color: var(--text-primary) !important;
-    padding: 12px 16px;
-    font-weight: 400;
-    transition: all 0.3s ease;
-    background: transparent !important;
-  }
-  
-  .selectize-dropdown-content .option:hover {
-    background: rgba(0, 212, 255, 0.15) !important;
-    color: var(--cyber-blue) !important;
-    font-weight: 500;
-  }
-  
-  .selectize-dropdown-content .option.active {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%) !important;
-    color: var(--text-primary) !important;
-    font-weight: 500;
-  }
-
-  /* Futuristik Notifications */
-  .shiny-notification {
-    background: rgba(26, 31, 46, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-lg);
-    color: var(--text-primary) !important;
-    box-shadow: var(--glow-cyan);
-    font-size: 14px;
-  }
-  
-  .shiny-notification-message {
-    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-    border-color: var(--cyber-blue);
-  }
-
-  /* Cyber Login Container */
-  .login-container {
-    background: rgba(26, 31, 46, 0.95);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--glow-cyan), var(--shadow-cyber);
-    padding: 48px;
-    margin: 50px auto;
-    max-width: 450px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .login-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--cyber-blue) 0%, var(--neon-pink) 50%, var(--electric-purple) 100%);
-  }
-  
-  .login-title {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--neon-pink) 50%, var(--electric-purple) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-    font-size: 2.5rem;
-    text-align: center;
-    margin-bottom: 8px;
-    letter-spacing: -0.025em;
-    text-shadow: var(--glow-cyan);
-  }
-  
-  .login-subtitle {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    font-weight: 400;
-    text-align: center;
-    margin-bottom: 32px;
-  }
-
-  /* Grid System */
-  .row {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -12px;
-  }
-  
-  .col-6 {
-    flex: 0 0 50%;
-    max-width: 50%;
-    padding: 0 12px;
-  }
-  
-  .col-12 {
-    flex: 0 0 100%;
-    max-width: 100%;
-    padding: 0 12px;
-  }
-
-  /* Cyber Verbatim Output */
-  .shiny-text-output,
-  pre {
-    background: rgba(26, 31, 46, 0.8) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 13px;
-    box-shadow: var(--shadow-digital);
-    backdrop-filter: blur(10px);
-  }
-
-  /* Cyber Input Overrides */
-  input[type='date'],
-  input[type='number'],
-  input[type='text'] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 400;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-  }
-  
-  input[type='date']:focus,
-  input[type='number']:focus,
-  input[type='text']:focus {
-    border-color: var(--cyber-blue) !important;
-    box-shadow: var(--glow-cyan);
-  }
-
-  /* Cyber Sliders */
-  .irs-bar {
-    background: linear-gradient(90deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    box-shadow: var(--glow-cyan);
-  }
-  
-  .irs-handle {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    border: 2px solid var(--text-primary);
-    box-shadow: var(--glow-cyan);
-  }
-
-  /* Cyber Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(26, 31, 46, 0.5);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--electric-purple) 100%);
-    border-radius: 4px;
-    box-shadow: var(--glow-cyan);
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, var(--neon-pink) 0%, var(--plasma-orange) 100%);
-  }
-
-  /* Responsive Design */
-  @media (max-width: 1200px) {
-    .sidebar-container {
-      width: 320px;
-    }
-    
-    .main-layout {
-      margin: 0 12px 24px;
-      padding: 24px;
-    }
-  }
-  
-  @media (max-width: 992px) {
-    .sidebar-container {
-      width: 100%;
-      margin-right: 0;
-      margin-bottom: 24px;
-      position: static;
-    }
-    
-    .main-layout {
-      flex-direction: column;
-      margin: 0 8px 16px;
-      padding: 20px;
-    }
-    
-    .header-container {
-      padding: 16px 20px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .col-6 {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
-    
-    .header-content {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .logo-section h1 {
-      font-size: 2rem;
-    }
-    
-    .card-body {
-      padding: 24px;
-    }
-    
-    .main-layout {
-      margin: 0 4px 12px;
-      padding: 16px;
-    }
-    
-    .table-selection-group {
-      grid-template-columns: 1fr;
-    }
-  }
-"
+# source("../PROINSURE_GEWEND/modules/module_login.R")
 
 # UI ----
 ui <- tagList(
   
+  shinythemes::themeSelector(),  # <--- Add this somewhere in the UI
+  
   ### CSS & JS 
   tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = shinytheme("flatly")),
+    tags$link(rel = "stylesheet", type = "text/css", href = shinytheme("cyborg")),
     tags$link(href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap", rel = "stylesheet"),
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"),
-    tags$style(HTML(my_css))
+    includeCSS("styles.css")
   ),
   
   ### JS 
@@ -1493,10 +415,10 @@ server <- function(input, output, session) {
   ##RENDER UI ----
   output$web_page <- renderUI({
     
-    req(user_auth()) 
+    # req(user_auth()) 
     
     fluidPage(
-      style = "padding: 0; margin: 0;",
+      style = "padding: 0; margin: 0; width: 100vw; min-height: 100vh; overflow-x: hidden;",
       
       # Modern Header
       div(
@@ -1506,7 +428,7 @@ server <- function(input, output, session) {
           div(
             class = "logo-section",
             h1("PROINSURE"),
-            p("Maluliyet ve DEstel Tazminatı Hesaplama Sistemi")
+            p("Maluliyet ve Destek Tazminatı Hesaplama Sistemi")
           ),
           actionButton("logout", "Çıkış Yap", 
                        class = "btn btn-danger",
@@ -1514,14 +436,15 @@ server <- function(input, output, session) {
         )
       ),
       
-      # Main Layout
+      # Main Layout - Tam genişlik
       div(
         class = "main-layout",
-        style = "display: flex; padding: 0 24px;",
+        style = "display: flex; padding: 20px; width: 100%; max-width: none; margin: 0;",
         
-        # Futuristik Sidebar
+        # Futuristik Sidebar - Biraz daha dar
         div(
           class = "sidebar-container",
+          style = "width: 280px; margin-right: 20px;",
           
           div(
             class = "sidebar-header",
@@ -1536,12 +459,12 @@ server <- function(input, output, session) {
             # Hesaplama Yöntemi
             div(
               class = "control-group",
-              span(class = "control-label", "Hesaplama Yöntemi"),
+              tags$span(class = "control-label", "Hesaplama Yöntemi"),
               radioGroupButtons(
                 inputId = "yontem",
                 label = NULL,
-                choices = c("Aktüeryal", "Progresif"),
-                selected = "Progresif",
+                choices = c("Aktüeryal", "Progresif Rant"),
+                selected = "Progresif Rant",
                 justified = TRUE,
                 size = "sm"
               )
@@ -1549,10 +472,15 @@ server <- function(input, output, session) {
             
             # Yaşam Tablosu Seçimi - Progresif
             conditionalPanel(
-              condition = "input.yontem == 'Progresif'",
+              condition = "input.yontem == 'Progresif Rant'",
               div(
                 class = "control-group",
-                span(class = "control-label", "Yaşam Tablosu"),
+                tags$span(class = "control-label", "Yaşam Tablosu"),
+                
+                # Hidden input for tablo2
+                div(style = "display: none;",
+                    textInput("tablo2", NULL, value = "TRH-2010")),
+                
                 div(
                   class = "table-selection-group",
                   tags$button(class = "table-btn active", onclick = "selectTable('TRH-2010', 'progresif')", "TRH-2010"),
@@ -1572,7 +500,12 @@ server <- function(input, output, session) {
               condition = "input.yontem == 'Aktüeryal'",
               div(
                 class = "control-group",
-                span(class = "control-label", "Yaşam Tablosu"),
+                tags$span(class = "control-label", "Yaşam Tablosu"),
+                
+                # Hidden input for tablo1
+                div(style = "display: none;",
+                    textInput("tablo1", NULL, value = "TRH-2010")),
+                
                 div(
                   class = "table-selection-group",
                   tags$button(class = "table-btn active", onclick = "selectTable('TRH-2010', 'aktueryal')", "TRH-2010"),
@@ -1585,12 +518,13 @@ server <- function(input, output, session) {
                 numericInput("teknik_faiz", "Teknik Faiz (%)", 
                              value = 1.8, step = 0.1, min = 0, max = 20)
               )
+              
             ),
             
             # Ana İşlemler
             div(
               class = "control-group",
-              span(class = "control-label", "İşlemler"),
+              tags$span(class = "control-label", "İşlemler"),
               actionButton("action", "Hesaplama Başlat", 
                            class = "btn btn-primary btn-block",
                            icon = icon("calculator")),
@@ -1598,7 +532,12 @@ server <- function(input, output, session) {
               
               # Rapor Türü Seçimi
               div(
-                span(class = "control-label", "Rapor Türü"),
+                tags$span(class = "control-label", "Rapor Türü"),
+                
+                # Hidden input for rapor
+                div(style = "display: none;",
+                    textInput("rapor", NULL, value = "Tüm Rapor-1 Ödeme")),
+                
                 div(
                   class = "rapor-grid",
                   tags$button(class = "rapor-btn active", onclick = "selectRapor('Tüm Rapor-1 Ödeme')", "Tüm Rapor-1 Ödeme"),
@@ -1626,9 +565,9 @@ server <- function(input, output, session) {
           )
         ),
         
-        # Main Content
+        # Main Content - Genişletildi
         div(
-          style = "flex: 1;",
+          style = "flex: 1; min-width: 0;",
           
           tabsetPanel(
             id = "main_tabs",
@@ -1639,10 +578,12 @@ server <- function(input, output, session) {
               value = "veri_girisi",
               div(
                 class = "row",
+                style = "margin: 0;",
                 
                 # Genel Bilgiler
                 div(
                   class = "col-6",
+                  style = "padding-left: 5px; padding-right: 15px;",
                   div(
                     class = "modern-card",
                     div(class = "card-header",
@@ -1668,9 +609,10 @@ server <- function(input, output, session) {
                   )
                 ),
                 
-                # Şirket Ödemeleri (yer değiştirildi)
+                # Şirket Ödemeleri
                 div(
                   class = "col-6",
+                  style = "padding-left: 15px; padding-right: 5px;",
                   div(
                     class = "modern-card",
                     div(class = "card-header",
@@ -1682,30 +624,55 @@ server <- function(input, output, session) {
                           numericInput("kısmiodeme", NULL, value = 0, min = 0, max = 3)),
                       
                       conditionalPanel(
-                        condition = "input.kısmiodeme >= 1",
+                        condition = "input.kısmiodeme == '1'",
                         div(class = "well",
                             h6("Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            conditionalPanel(
-                              condition = "input.kısmiodeme >= 1",
-                              div(class = "row",
-                                  div(class = "col-6",
-                                      dateInput("kısmiodemetarihi1", "1. Ödeme Tarihi", value = Sys.Date())),
-                                  div(class = "col-6",
-                                      numericInput("ko1", "1. Ödeme Tutarı", value = 0)))),
-                            conditionalPanel(
-                              condition = "input.kısmiodeme >= 2",
-                              div(class = "row",
-                                  div(class = "col-6",
-                                      dateInput("kısmiodemetarihi2", "2. Ödeme Tarihi", value = Sys.Date())),
-                                  div(class = "col-6",
-                                      numericInput("ko2", "2. Ödeme Tutarı", value = 0)))),
-                            conditionalPanel(
-                              condition = "input.kısmiodeme >= 3",
-                              div(class = "row",
-                                  div(class = "col-6",
-                                      dateInput("kısmiodemetarihi3", "3. Ödeme Tarihi", value = Sys.Date())),
-                                  div(class = "col-6",
-                                      numericInput("ko3", "3. Ödeme Tutarı", value = 0))))))
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi1", "1. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko1", "1. Ödeme Tutarı", value = 0))))
+                      ),
+                      
+                      conditionalPanel(
+                        condition = "input.kısmiodeme == '2'",
+                        div(class = "well",
+                            h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi2", "1. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko2", "1. Ödeme Tutarı", value = 0))),
+                            h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi3", "2. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko3", "2. Ödeme Tutarı", value = 0))))
+                      ),
+                      
+                      conditionalPanel(
+                        condition = "input.kısmiodeme == '3'",
+                        div(class = "well",
+                            h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi4", "1. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko4", "1. Ödeme Tutarı", value = 0))),
+                            h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi5", "2. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko5", "2. Ödeme Tutarı", value = 0))),
+                            h6("3. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                            div(class = "row",
+                                div(class = "col-6",
+                                    dateInput("kısmiodemetarihi6", "3. Ödeme Tarihi", value = Sys.Date())),
+                                div(class = "col-6",
+                                    numericInput("ko6", "3. Ödeme Tutarı", value = 0))))
+                      )
                     )
                   )
                 )
@@ -1713,10 +680,12 @@ server <- function(input, output, session) {
               
               div(
                 class = "row",
+                style = "margin: 0;",
                 
-                # Kişisel Bilgiler (yer değiştirildi)
+                # Kişisel Bilgiler
                 div(
                   class = "col-6",
+                  style = "padding-left: 5px; padding-right: 15px;",
                   div(
                     class = "modern-card",
                     div(class = "card-header",
@@ -1755,6 +724,7 @@ server <- function(input, output, session) {
                 # Ek Bilgiler
                 div(
                   class = "col-6",
+                  style = "padding-left: 15px; padding-right: 5px;",
                   div(
                     class = "modern-card",
                     div(class = "card-header",
@@ -1779,7 +749,8 @@ server <- function(input, output, session) {
                             conditionalPanel(
                               condition = "input.gelir == 'Asgari ücret'",
                               selectInput("asgari_durum", "Aile Durumu",
-                                          choices = c("Bekar", "Evli/Çocuksuz", "1 Çocuk", "2 Çocuk", "3 Çocuk", "4 Çocuk"))),
+                                          choices = c("Bekar", "evli_cocuksuz", "1cocuk","2cocuk","3cocuk","4cocuk"),
+                                          selected = "Bekar")),
                             conditionalPanel(
                               condition = "input.gelir == 'Diğer'",
                               h6("Manuel Gelir Girişi", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
@@ -1831,7 +802,69 @@ server <- function(input, output, session) {
                                     conditionalPanel(
                                       condition = "input.baba == 'Var'",
                                       textInput("baba_isim", "Baba Ad-Soyad"),
-                                      dateInput("babadogumtarihi", "Doğum Tarihi")))))
+                                      dateInput("babadogumtarihi", "Doğum Tarihi")))),
+                            
+                            # Çocuk Bilgileri - Birinci appteki gibi 5 çocuğa kadar
+                            div(
+                              p(tags$b("1. Çocuk")),
+                              radioGroupButtons("cocuk1", NULL,
+                                                choices = c("Var", "Yok"),
+                                                selected = "Yok", justified = TRUE, size = "sm"),
+                              conditionalPanel(
+                                condition = "input.cocuk1 == 'Var'",
+                                textInput("cocuk1_isim", "1.Çocuk Ad-Soyad", value = ""),
+                                dateInput("cocukdogumtarihi11", "1. Çocuk Doğum Tarihi", value = Sys.Date())
+                              )
+                            ),
+                            
+                            div(
+                              p(tags$b("2. Çocuk")),
+                              radioGroupButtons("cocuk2", NULL,
+                                                choices = c("Var", "Yok"),
+                                                selected = "Yok", justified = TRUE, size = "sm"),
+                              conditionalPanel(
+                                condition = "input.cocuk2 == 'Var'",
+                                textInput("cocuk2_isim", "2.Çocuk Ad-Soyad", value = ""),
+                                dateInput("cocukdogumtarihi22", "2. Çocuk Doğum Tarihi", value = Sys.Date())
+                              )
+                            ),
+                            
+                            div(
+                              p(tags$b("3. Çocuk")),
+                              radioGroupButtons("cocuk3", NULL,
+                                                choices = c("Var", "Yok"),
+                                                selected = "Yok", justified = TRUE, size = "sm"),
+                              conditionalPanel(
+                                condition = "input.cocuk3 == 'Var'",
+                                textInput("cocuk3_isim", "3.Çocuk Ad-Soyad", value = ""),
+                                dateInput("cocukdogumtarihi33", "3. Çocuk Doğum Tarihi", value = Sys.Date())
+                              )
+                            ),
+                            
+                            div(
+                              p(tags$b("4. Çocuk")),
+                              radioGroupButtons("cocuk4", NULL,
+                                                choices = c("Var", "Yok"),
+                                                selected = "Yok", justified = TRUE, size = "sm"),
+                              conditionalPanel(
+                                condition = "input.cocuk4 == 'Var'",
+                                textInput("cocuk4_isim", "4.Çocuk Ad-Soyad", value = ""),
+                                dateInput("cocukdogumtarihi44", "4. Çocuk Doğum Tarihi", value = Sys.Date())
+                              )
+                            ),
+                            
+                            div(
+                              p(tags$b("5. Çocuk")),
+                              radioGroupButtons("cocuk5", NULL,
+                                                choices = c("Var", "Yok"),
+                                                selected = "Yok", justified = TRUE, size = "sm"),
+                              conditionalPanel(
+                                condition = "input.cocuk5 == 'Var'",
+                                textInput("cocuk5_isim", "5.Çocuk Ad-Soyad", value = ""),
+                                dateInput("cocukdogumtarihi55", "5. Çocuk Doğum Tarihi", value = Sys.Date())
+                              )
+                            )
+                        )
                       ),
                       
                       # Bakıcı Bilgisi
@@ -1848,11 +881,11 @@ server <- function(input, output, session) {
                             radioGroupButtons("bakici_gider", "Bakıcı Gideri",
                                               choices = c("Var", "Yok"), selected = "Yok",
                                               justified = TRUE, size = "sm"),
+                            radioGroupButtons("bakici_tut", "Bakıcı Tutuldu mu?",
+                                              choices = c("Evet", "Hayır"), selected = "Hayır",
+                                              justified = TRUE, size = "sm"),
                             conditionalPanel(
                               condition = "input.bakici_gider == 'Var'",
-                              radioGroupButtons("bakici_tut", "Bakıcı Tutuldu mu?",
-                                                choices = c("Evet", "Hayır"), selected = "Hayır",
-                                                justified = TRUE, size = "sm"),
                               numericInput("bakici_sure", "Bakıcı Süresi (Gün)", value = 0, step = 1, min = 0, max = 365)))
                       )
                     )
@@ -1863,7 +896,7 @@ server <- function(input, output, session) {
               # Girilen Veriler Tablosu
               div(
                 class = "modern-card",
-                style = "margin-top: 24px;",
+                style = "margin-top: 30px; margin-left: 5px; margin-right: 5px;",
                 div(class = "card-header",
                     h4(icon("table"), " Girilen Veriler")),
                 div(class = "card-body",
@@ -1877,18 +910,21 @@ server <- function(input, output, session) {
               value = "grafikler",
               div(
                 class = "row",
+                style = "margin: 0;",
                 div(class = "col-6",
+                    style = "padding-left: 5px; padding-right: 15px;",
                     div(class = "modern-card",
                         div(class = "card-header", h4(icon("chart-line"), " Veri Analizi")),
                         div(class = "card-body", plotlyOutput("veri_grafik", height = "300px")))),
                 div(class = "col-6",
+                    style = "padding-left: 15px; padding-right: 5px;",
                     div(class = "modern-card",
                         div(class = "card-header", h4(icon("chart-pie"), " Dağılım")),
                         div(class = "card-body", plotlyOutput("dagilim_grafik", height = "300px"))))
               ),
               div(
                 class = "modern-card",
-                style = "margin-top: 20px;",
+                style = "margin-top: 30px; margin-left: 5px; margin-right: 5px;",
                 div(class = "card-header", h4(icon("chart-bar"), " Karşılaştırma")),
                 div(class = "card-body", plotlyOutput("karsilastirma_grafik", height = "300px"))
               )
@@ -1900,17 +936,20 @@ server <- function(input, output, session) {
               value = "istatistikler",
               div(
                 class = "modern-card",
+                style = "margin-left: 5px; margin-right: 5px;",
                 div(class = "card-header", h4(icon("database"), " Tüm Kayıtlar")),
                 div(class = "card-body", DTOutput("tum_kayitlar"))
               ),
               div(
                 class = "row",
-                style = "margin-top: 20px;",
+                style = "margin-top: 30px; margin-left: 0; margin-right: 0;",
                 div(class = "col-6",
+                    style = "padding-left: 5px; padding-right: 15px;",
                     div(class = "modern-card",
                         div(class = "card-header", h4(icon("chart-area"), " Özet İstatistikler")),
                         div(class = "card-body", verbatimTextOutput("ozet_istatistik")))),
                 div(class = "col-6",
+                    style = "padding-left: 15px; padding-right: 5px;",
                     div(class = "modern-card",
                         div(class = "card-header", h4(icon("download"), " Veri İndirme")),
                         div(class = "card-body",
@@ -1926,6 +965,7 @@ server <- function(input, output, session) {
               value = "yardim",
               div(
                 class = "modern-card",
+                style = "margin-left: 5px; margin-right: 5px;",
                 div(class = "card-header", h4(icon("question-circle"), " PROINSURE Hakkında")),
                 div(
                   class = "card-body",
@@ -1954,7 +994,621 @@ server <- function(input, output, session) {
             )
           )
         )
-      )
+      ),
+      
+      # CSS Styles - Güncellenmiş
+      tags$style(HTML("
+        :root {
+          --bg-primary: #0a0e1a;
+          --bg-secondary: #1a1f2e;
+          --bg-card: rgba(26, 31, 46, 0.8);
+          --text-light: #f8fafc;
+          --text-dark: #e2e8f0;
+          --accent-blue: #00ccff;
+          --accent-pink: #ff2975;
+          --accent-purple: #7b3fe4;
+          --accent-orange: #ff8d3f;
+          --accent-green: #10b981;
+          --accent-yellow: #f59e0b;
+        }
+        
+        * {
+          box-sizing: border-box;
+        }
+        
+        body {
+          background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+          color: var(--text-light);
+          font-family: 'Inter', sans-serif;
+          margin: 0;
+          padding: 0;
+          min-height: 100vh;
+          width: 100vw;
+          overflow-x: hidden;
+        }
+        
+        .header-container {
+          background: rgba(26, 31, 46, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 204, 255, 0.3);
+          padding: 16px 0;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+          width: 100%;
+        }
+        
+        .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+        
+        .logo-section h1 {
+          margin: 0;
+          color: var(--accent-blue);
+          font-size: 2.5rem;
+          font-weight: 700;
+          text-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+          letter-spacing: 2px;
+        }
+        
+        .logo-section p {
+          margin: 4px 0 0 0;
+          color: var(--text-dark);
+          font-size: 0.9rem;
+          font-weight: 400;
+        }
+        
+        .main-layout {
+          width: 100%;
+          max-width: none;
+          margin: 0;
+        }
+        
+        .sidebar-container {
+          background: var(--bg-card);
+          backdrop-filter: blur(20px);
+          border-radius: 16px;
+          border: 1px solid rgba(0, 204, 255, 0.2);
+          padding: 32px 28px;
+          height: fit-content;
+          position: sticky;
+          top: 24px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          flex-shrink: 0;
+          min-width: 420px;
+        }
+        
+        .sidebar-header h4 {
+          color: var(--text-light);
+          margin: 0 0 20px 0;
+          font-weight: 600;
+          text-shadow: 0 0 15px rgba(248, 250, 252, 0.7);
+          letter-spacing: 0.5px;
+          font-size: 1.3rem;
+        }
+        
+        .status-badge {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--accent-green);
+          font-size: 0.95rem;
+          font-weight: 500;
+          margin-bottom: 28px;
+          padding: 12px 16px;
+          background: rgba(16, 185, 129, 0.1);
+          border-radius: 10px;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .control-group {
+          margin-bottom: 28px;
+        }
+        
+        .control-label {
+          display: block;
+          color: var(--text-light);
+          font-weight: 600;
+          margin-bottom: 16px;
+          text-shadow: 0 0 15px rgba(248, 250, 252, 0.7);
+          letter-spacing: 0.3px;
+          font-size: 1.05rem;
+        }
+        
+        .table-selection-group {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        
+        .table-btn, .rapor-btn {
+          background: rgba(0, 204, 255, 0.1);
+          border: 1px solid rgba(0, 204, 255, 0.3);
+          color: var(--accent-blue);
+          padding: 12px 16px;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .table-btn:hover, .rapor-btn:hover {
+          background: rgba(0, 204, 255, 0.2);
+          border-color: var(--accent-blue);
+          box-shadow: 0 4px 16px rgba(0, 204, 255, 0.3);
+        }
+        
+        .table-btn.active, .rapor-btn.active {
+          background: var(--accent-blue);
+          color: white;
+          box-shadow: 0 4px 16px rgba(0, 204, 255, 0.4);
+        }
+        
+        .rapor-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        
+        .rapor-grid .rapor-btn {
+          padding: 10px 14px;
+          font-size: 0.85rem;
+          min-height: 40px;
+        }
+        
+        .modern-card {
+          background: var(--bg-card);
+          backdrop-filter: blur(20px);
+          border-radius: 16px;
+          border: 1px solid rgba(0, 204, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          margin-bottom: 30px;
+          overflow: hidden;
+        }
+        
+        .card-header {
+          background: linear-gradient(135deg, rgba(0, 204, 255, 0.1) 0%, rgba(123, 63, 228, 0.1) 100%);
+          padding: 24px 28px;
+          border-bottom: 1px solid rgba(0, 204, 255, 0.2);
+        }
+        
+        .card-header h4 {
+          margin: 0;
+          color: var(--text-light);
+          font-weight: 600;
+          text-shadow: 0 0 15px rgba(248, 250, 252, 0.7);
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 1.15rem;
+        }
+        
+        .card-body {
+          padding: 28px;
+        }
+        
+        .form-group {
+          margin-bottom: 20px;
+        }
+        
+        .form-label {
+          display: block;
+          color: var(--text-light);
+          font-weight: 500;
+          margin-bottom: 8px;
+          text-shadow: 0 0 10px rgba(248, 250, 252, 0.5);
+          letter-spacing: 0.3px;
+        }
+        
+        .collapsible-btn {
+          width: 100%;
+          background: linear-gradient(135deg, rgba(0, 204, 255, 0.1) 0%, rgba(255, 41, 117, 0.1) 100%);
+          border: 1px solid rgba(0, 204, 255, 0.3);
+          color: var(--text-light);
+          padding: 16px 20px;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-shadow: 0 0 10px rgba(248, 250, 252, 0.5);
+          letter-spacing: 0.3px;
+        }
+        
+        .collapsible-btn:hover {
+          background: linear-gradient(135deg, rgba(0, 204, 255, 0.2) 0%, rgba(255, 41, 117, 0.2) 100%);
+          border-color: var(--accent-blue);
+          box-shadow: 0 4px 16px rgba(0, 204, 255, 0.3);
+          transform: translateY(-2px);
+        }
+        
+        .collapsible-content {
+          background: rgba(15, 23, 42, 0.6);
+          border-radius: 12px;
+          margin-bottom: 16px;
+          border: 1px solid rgba(0, 204, 255, 0.1);
+          overflow: hidden;
+        }
+        
+        .well {
+          background: rgba(15, 23, 42, 0.4);
+          border: 1px solid rgba(0, 204, 255, 0.2);
+          border-radius: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
+        }
+        
+        /* SIDEBAR TARİH VE TEXT DÜZELTMELERİ - ÇOK GÜÇLÜ */
+        .sidebar-container .control-label {
+          color: #ffffff !important;
+          font-size: 1.1rem !important;
+          font-weight: 700 !important;
+          margin-bottom: 16px !important;
+          text-shadow: 0 0 15px rgba(0, 204, 255, 0.8) !important;
+          letter-spacing: 0.5px !important;
+        }
+        
+        .sidebar-container h4 {
+          color: #ffffff !important;
+          font-size: 1.4rem !important;
+          font-weight: 700 !important;
+          margin: 0 0 20px 0 !important;
+          text-shadow: 0 0 20px rgba(0, 204, 255, 0.9) !important;
+          letter-spacing: 0.8px !important;
+        }
+        
+        .status-badge {
+          color: #ffffff !important;
+          font-size: 1rem !important;
+          font-weight: 600 !important;
+          padding: 14px 20px !important;
+          margin-bottom: 28px !important;
+          text-shadow: 0 0 10px rgba(0, 255, 136, 0.8) !important;
+        }
+        
+        .table-btn, .rapor-btn {
+          color: #ffffff !important;
+          font-size: 0.95rem !important;
+          font-weight: 600 !important;
+          padding: 14px 18px !important;
+          min-height: 48px !important;
+          text-shadow: 0 0 8px rgba(0, 204, 255, 0.6) !important;
+        }
+        
+        .table-btn.active, .rapor-btn.active {
+          color: #000000 !important;
+          font-weight: 700 !important;
+          text-shadow: none !important;
+        }
+
+        /* TARİH INPUT DÜZELTMELERİ - EN GÜÇLÜ VERSİYON */
+        html body input[type='date'],
+        html body .shiny-date-input input,
+        html body .form-control[type='date'],
+        html div.shiny-date-input > input[type='date'],
+        html .shiny-input-container input[type='date'] {
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          appearance: none !important;
+          background-color: rgba(15, 23, 42, 0.98) !important;
+          background: rgba(15, 23, 42, 0.98) !important;
+          border: 3px solid rgba(0, 204, 255, 0.7) !important;
+          color: #ffffff !important;
+          border-radius: 12px !important;
+          padding: 14px 18px !important;
+          font-size: 16px !important;
+          font-family: 'Inter', sans-serif !important;
+          font-weight: 700 !important;
+          min-height: 50px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          color-scheme: dark !important;
+          text-shadow: 0 0 5px rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        html body input[type='date']:focus,
+        html body .shiny-date-input input:focus,
+        html body .form-control[type='date']:focus,
+        html div.shiny-date-input > input[type='date']:focus,
+        html .shiny-input-container input[type='date']:focus {
+          background-color: rgba(15, 23, 42, 1) !important;
+          background: rgba(15, 23, 42, 1) !important;
+          border-color: #00ccff !important;
+          box-shadow: 0 0 0 4px rgba(0, 204, 255, 0.4), 0 0 20px rgba(0, 204, 255, 0.6) !important;
+          color: #ffffff !important;
+          text-shadow: 0 0 8px rgba(255, 255, 255, 1) !important;
+        }
+        
+        /* Takvim seçici ikonu - GÜÇLÜ */
+        html body input[type='date']::-webkit-calendar-picker-indicator,
+        html body .shiny-date-input input[type='date']::-webkit-calendar-picker-indicator,
+        html div.shiny-date-input > input[type='date']::-webkit-calendar-picker-indicator {
+          background-image: none !important;
+          background: none !important;
+          color: #00ccff !important;
+          cursor: pointer !important;
+          filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg) brightness(2) contrast(1.5) !important;
+          width: 24px !important;
+          height: 24px !important;
+          padding: 6px !important;
+          margin-left: 10px !important;
+          border-radius: 4px !important;
+          background-color: rgba(0, 204, 255, 0.2) !important;
+        }
+        
+        /* Tarih alanları metinleri - GÜÇLÜ */
+        html body input[type='date']::-webkit-datetime-edit,
+        html body input[type='date']::-webkit-datetime-edit-text,
+        html body input[type='date']::-webkit-datetime-edit-month-field,
+        html body input[type='date']::-webkit-datetime-edit-day-field,
+        html body input[type='date']::-webkit-datetime-edit-year-field {
+          color: #ffffff !important;
+          background: transparent !important;
+          font-weight: 700 !important;
+          font-size: 16px !important;
+          text-shadow: 0 0 5px rgba(255, 255, 255, 0.8) !important;
+          padding: 2px !important;
+        }
+
+        /* DİĞER INPUT'LAR DA GÜÇLÜ */
+        html body input[type='text'], 
+        html body input[type='number'], 
+        html body input[type='email'], 
+        html body input[type='password'], 
+        html body select, 
+        html body textarea,
+        html body .form-control, 
+        html body .form-select,
+        html .shiny-input-container input:not([type='date']),
+        html .selectize-input {
+          background-color: rgba(15, 23, 42, 0.98) !important;
+          background: rgba(15, 23, 42, 0.98) !important;
+          border: 3px solid rgba(0, 204, 255, 0.6) !important;
+          color: #ffffff !important;
+          border-radius: 12px !important;
+          padding: 14px 18px !important;
+          font-size: 15px !important;
+          font-family: 'Inter', sans-serif !important;
+          font-weight: 600 !important;
+          box-sizing: border-box !important;
+          min-height: 50px !important;
+          text-shadow: 0 0 5px rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        html body input[type='text']:focus, 
+        html body input[type='number']:focus, 
+        html body input[type='email']:focus, 
+        html body input[type='password']:focus, 
+        html body select:focus, 
+        html body textarea:focus,
+        html body .form-control:focus, 
+        html body .form-select:focus,
+        html .shiny-input-container input:focus:not([type='date']),
+        html .selectize-input.focus {
+          background-color: rgba(15, 23, 42, 1) !important;
+          background: rgba(15, 23, 42, 1) !important;
+          border-color: #00ccff !important;
+          box-shadow: 0 0 0 4px rgba(0, 204, 255, 0.4), 0 0 20px rgba(0, 204, 255, 0.6) !important;
+          color: #ffffff !important;
+          outline: none !important;
+          text-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        /* Select input styling */
+        .selectize-input, .selectize-control.single .selectize-input {
+          background: rgba(15, 23, 42, 0.8) !important;
+          border: 1px solid rgba(0, 204, 255, 0.3) !important;
+          color: var(--text-light) !important;
+        }
+        
+        .selectize-dropdown {
+          background: rgba(15, 23, 42, 0.95) !important;
+          border: 1px solid rgba(0, 204, 255, 0.3) !important;
+          color: var(--text-light) !important;
+        }
+        
+        .selectize-dropdown .option {
+          color: var(--text-light) !important;
+        }
+        
+        .selectize-dropdown .option:hover {
+          background: rgba(0, 204, 255, 0.2) !important;
+        }
+        
+        /* Placeholder styling */
+        ::placeholder {
+          color: rgba(226, 232, 240, 0.6) !important;
+          opacity: 1 !important;
+        }
+        
+        :-ms-input-placeholder {
+          color: rgba(226, 232, 240, 0.6) !important;
+        }
+        
+        ::-ms-input-placeholder {
+          color: rgba(226, 232, 240, 0.6) !important;
+        }
+        
+        /* Tab styling */
+        .nav-tabs {
+          border-bottom: 1px solid rgba(0, 204, 255, 0.3);
+        }
+        
+        .nav-tabs .nav-link {
+          background: transparent;
+          border: 1px solid transparent;
+          color: var(--text-dark);
+          font-weight: 500;
+          margin-bottom: -1px;
+          transition: all 0.3s ease;
+        }
+        
+        .nav-tabs .nav-link:hover {
+          border-color: rgba(0, 204, 255, 0.3);
+          color: var(--accent-blue);
+        }
+        
+        .nav-tabs .nav-link.active {
+          background: var(--bg-card);
+          border-color: rgba(0, 204, 255, 0.3);
+          border-bottom-color: var(--bg-card);
+          color: var(--accent-blue);
+          font-weight: 600;
+        }
+        
+        /* Button styling */
+        .btn {
+          border-radius: 8px;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+          background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(0, 204, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 204, 255, 0.4);
+        }
+        
+        .btn-success {
+          background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-warning {
+          background: linear-gradient(135deg, var(--accent-yellow) 0%, #d97706 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-danger {
+          background: linear-gradient(135deg, var(--accent-pink) 0%, #dc2626 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(255, 41, 117, 0.3);
+        }
+        
+        /* DataTable styling */
+        .dataTables_wrapper {
+          color: var(--text-light);
+        }
+        
+        table.dataTable {
+          background: var(--bg-card);
+          border-collapse: collapse;
+        }
+        
+        table.dataTable thead th {
+          background: linear-gradient(135deg, rgba(0, 204, 255, 0.1) 0%, rgba(123, 63, 228, 0.1) 100%);
+          color: var(--text-light);
+          border-bottom: 1px solid rgba(0, 204, 255, 0.3);
+        }
+        
+        table.dataTable tbody td {
+          background: var(--bg-card);
+          color: var(--text-dark);
+          border-bottom: 1px solid rgba(0, 204, 255, 0.1);
+        }
+        
+        table.dataTable tbody tr:hover td {
+          background: rgba(0, 204, 255, 0.1);
+        }
+        
+        /* Canvas container */
+        #canvas-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: -1;
+          pointer-events: none;
+        }
+        
+        #canvas-container canvas {
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* Login styling */
+        .login-container {
+          text-align: center;
+          padding: 40px 30px;
+          background: var(--bg-card);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          border: 1px solid rgba(0, 204, 255, 0.3);
+          box-shadow: 0 16px 64px rgba(0, 0, 0, 0.4);
+        }
+        
+        .login-title {
+          color: var(--accent-blue);
+          font-size: 3rem;
+          font-weight: 700;
+          margin-bottom: 8px;
+          text-shadow: 0 0 30px rgba(0, 204, 255, 0.6);
+          letter-spacing: 3px;
+        }
+        
+        .login-subtitle {
+          color: var(--text-dark);
+          font-size: 1.1rem;
+          font-weight: 400;
+          margin-bottom: 0;
+          letter-spacing: 0.5px;
+        }
+        
+        /* Responsive düzenlemeler - GÜNCELLENME */
+        @media (max-width: 1600px) {
+          .main-layout {
+            flex-direction: column;
+            padding: 30px 40px !important;
+          }
+          
+          .sidebar-container {
+            width: 100% !important;
+            min-width: 100% !important;
+            margin-right: 0 !important;
+            margin-bottom: 40px;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .main-layout {
+            padding: 20px 30px !important;
+          }
+          
+          .header-content {
+            padding: 0 20px !important;
+          }
+          
+          .logo-section h1 {
+            font-size: 2rem !important;
+          }
+          
+          .sidebar-container {
+            padding: 24px 20px !important;
+          }
+        }
+      "))
     )
   })
   
@@ -1970,13 +1624,13 @@ server <- function(input, output, session) {
   # Tablo ve rapor seçimleri için reactive values
   observe({
     if (is.null(input$tablo1)) {
-      updateTextInput(session, "tablo1_hidden", value = "TRH-2010")
+      updateTextInput(session, "tablo1", value = "TRH-2010")
     }
     if (is.null(input$tablo2)) {
-      updateTextInput(session, "tablo2_hidden", value = "TRH-2010")
+      updateTextInput(session, "tablo2", value = "TRH-2010")
     }
     if (is.null(input$rapor)) {
-      updateTextInput(session, "rapor_hidden", value = "Tüm Rapor-1 Ödeme")
+      updateTextInput(session, "rapor", value = "Tüm Rapor-1 Ödeme")
     }
   })
   
@@ -2068,16 +1722,323 @@ server <- function(input, output, session) {
       return(as.character(input_val))
     }
     
-    data.frame(
-      Name = c("Dosya No", "Ad Soyad", "Cinsiyet", "Doğum Tarihi", "Gelir", 
-               "Kaza Tarihi", "Maluliyet Oranı", "Kusur Oranı", "Geçici Maluliyet (ay)", 
-               "Kısmi Ödeme Sayısı"),
-      Value = c(safe_value(input$dosya), safe_value(input$isim), safe_value(input$cinsiyet), 
-                safe_value(input$dogumtarihi), safe_value(input$gelir), safe_value(input$kazatarihi), 
-                safe_value(input$maluliyet, "0"), safe_value(input$kusur, "0"), safe_value(input$maluliyet_sure, "0"),
-                safe_value(input$kısmiodeme, "0")),
-      stringsAsFactors = FALSE
-    )
+    kot1 <- ifelse(as.character(input$kısmiodemetarihi1) == Sys.Date(),"-",as.character(input$kısmiodemetarihi1))
+    kot2 <- ifelse(as.character(input$kısmiodemetarihi2) == Sys.Date(),"-",as.character(input$kısmiodemetarihi2))
+    kot3 <- ifelse(as.character(input$kısmiodemetarihi3) == Sys.Date(),"-",as.character(input$kısmiodemetarihi3))
+    kot4 <- ifelse(as.character(input$kısmiodemetarihi4) == Sys.Date(),"-",as.character(input$kısmiodemetarihi4))
+    kot5 <- ifelse(as.character(input$kısmiodemetarihi5) == Sys.Date(),"-",as.character(input$kısmiodemetarihi5))
+    kot6 <- ifelse(as.character(input$kısmiodemetarihi6) == Sys.Date(),"-",as.character(input$kısmiodemetarihi6))
+    
+    excel_data <- if(input$kısmiodeme == '1' & input$gelir == "Asgari ücret") {
+      
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Asgari Ucret Durumu",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Bakıcı Süresi (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$asgari_durum),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot1,
+                  safe_value(input$ko1, "0")
+        )
+      )
+    } 
+    
+    else if(input$kısmiodeme == '2' & input$gelir == "Asgari ücret") {
+      
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Asgari Ucret Durumu",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Bakıcı Süresi (ay)",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1",
+                 "Kısmi Ödeme Tarihi-2",
+                 "Kısmi Ödeme Tutarı-2"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$asgari_durum),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot2,
+                  safe_value(input$ko2, "0"),
+                  kot3,
+                  safe_value(input$ko3, "0")
+        )
+      )
+    } 
+    
+    else if(input$kısmiodeme == '3' & input$gelir == "Asgari ücret") {
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Asgari Ucret Durumu",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Bakıcı Süresi (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1",
+                 "Kısmi Ödeme Tarihi-2",
+                 "Kısmi Ödeme Tutarı-2",
+                 "Kısmi Ödeme Tarihi-3",
+                 "Kısmi Ödeme Tutarı-3"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$asgari_durum),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot4,
+                  safe_value(input$ko4, "0"),
+                  kot5,
+                  safe_value(input$ko5, "0"),
+                  kot6,
+                  safe_value(input$ko6, "0")
+        )
+      )
+    }
+    
+    else if(input$kısmiodeme == '1' & input$gelir == "Diğer") {
+      
+      
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Bakıcı Süresi (ay)",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot1,
+                  safe_value(input$ko1, "0")
+        )
+      )
+    }
+    
+    
+    
+    else if(input$kısmiodeme == '2' & input$gelir == "Diğer") {
+      
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Bakıcı Süresi (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1",
+                 "Kısmi Ödeme Tarihi-2",
+                 "Kısmi Ödeme Tutarı-2"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot2,
+                  safe_value(input$ko2, "0"),
+                  kot3,
+                  safe_value(input$ko3, "0")
+        )
+      )
+    } 
+    
+    else if(input$kısmiodeme == '3' & input$gelir == "Diğer") {
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Bakıcı Süresi (ay)",
+                 "Kısmi Ödeme Sayısı",
+                 "Kısmi Ödeme Tarihi-1",
+                 "Kısmi Ödeme Tutarı-1",
+                 "Kısmi Ödeme Tarihi-2",
+                 "Kısmi Ödeme Tutarı-2",
+                 "Kısmi Ödeme Tarihi-3",
+                 "Kısmi Ödeme Tutarı-3"
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$kısmiodeme, "0"),
+                  kot4,
+                  safe_value(input$ko4, "0"),
+                  kot5,
+                  safe_value(input$ko5, "0"),
+                  kot6,
+                  safe_value(input$ko6, "0")
+        )
+      )
+    }
+    
+    
+    else if(input$kısmiodeme == '0' & input$gelir == "Asgari ücret") {
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Bakıcı Süresi (ay)",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Kısmi Ödeme Sayısı"
+                 
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$kısmiodeme, "0")
+                  
+        )
+      )
+    }
+    
+    
+    else {
+      data.frame(
+        Name = c("Dosya No",
+                 "Ad Soyad",
+                 "Cinsiyet",
+                 "Doğum Tarihi",
+                 "Gelir",
+                 "Asgari Ucret Durumu",
+                 "Kaza Tarihi",
+                 "Maluliyet Oranı",
+                 "Bakıcı Süresi (ay)",
+                 "Kusur Oranı",
+                 "Geçici Maluliyet (ay)",
+                 "Kısmi Ödeme Sayısı"
+                 
+        ),
+        
+        Value = c(safe_value(input$dosya),
+                  safe_value(input$isim),
+                  safe_value(input$cinsiyet),
+                  safe_value(input$dogumtarihi),
+                  safe_value(input$gelir),
+                  safe_value(input$asgari_durum),
+                  safe_value(input$kazatarihi),
+                  safe_value(input$maluliyet, "0"),
+                  safe_value(input$bakici_sure, "0"),
+                  safe_value(input$kusur, "0"),
+                  safe_value(input$maluliyet_sure, "0"),
+                  safe_value(input$kısmiodeme, "0")
+                  
+        )
+      )
+    }
+    
+    
   })
   
   # Show the values in an HTML table
@@ -2233,24 +2194,219 @@ server <- function(input, output, session) {
     }
   )
   
+  ## GENERATE REPORT DOWNLOAD HANDLER - BİRİNCİ APPDEN KOPYALANDI ----
   output$generate_report <- downloadHandler(
-    filename = "proinsure_report.docx",
+    filename = "rendered_report.docx",
     content = function(file) {
-      writeLines(c(
-        "PROINSURE - Maluliyet Hesaplama Raporu",
-        "========================================",
-        "",
-        paste("Dosya No:", input$dosya),
-        paste("Ad Soyad:", input$isim),
-        paste("Cinsiyet:", input$cinsiyet),
-        paste("Doğum Tarihi:", input$dogumtarihi),
-        paste("Kaza Tarihi:", input$kazatarihi),
-        paste("Maluliyet Oranı:", input$maluliyet, "%"),
-        paste("Kusur Oranı:", input$kusur, "%"),
-        "",
-        "Bu rapor PROINSURE sistemi tarafından otomatik olarak oluşturulmuştur.",
-        paste("Rapor Tarihi:", Sys.Date())
-      ), file)
+      
+      if(input$rapor == "Tüm Rapor-1 Ödeme") {
+        res <- rmarkdown::render(
+          "tum_report_1odeme.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PKismi_Odeme_Sayisi = input$kısmiodeme,
+            PKismi_Odeme_Tarihi_1 = input$kısmiodemetarihi1,
+            PKismi_Odeme_Tutari_1 = input$ko1,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PBakici = ifelse(is.null(input$bakici_gider), "Yok", input$bakici_gider),
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Tüm Rapor-2 Ödeme") {
+        res <- rmarkdown::render(
+          "tum_report_2odeme.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PKismi_Odeme_Sayisi = input$kısmiodeme,
+            PKismi_Odeme_Tarihi_1 = input$kısmiodemetarihi2,
+            PKismi_Odeme_Tutari_1 = input$ko2,
+            PKismi_Odeme_Tarihi_2 = input$kısmiodemetarihi3,
+            PKismi_Odeme_Tutarı_2 = input$ko3,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PBakici = ifelse(is.null(input$bakici_gider), "Yok", input$bakici_gider),
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Tüm Rapor (Şirket Ödemesiz)") {
+        
+        res <- rmarkdown::render(
+          "tum_report_sirket_odemesiz1.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PBakici = ifelse(is.null(input$bakici_gider), "Yok", input$bakici_gider),
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Sürekli+Geçici (Şirket Ödemesiz)") {
+        
+        res <- rmarkdown::render(
+          "surekli_gecici_sirket_odemesiz.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Geçici (Şirket Ödemesiz)") {
+        
+        res <- rmarkdown::render(
+          "gecici_sirket_odemesiz.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Sürekli (Şirket Ödemesiz)") {
+        
+        res <- rmarkdown::render(
+          "surekli_sirket_odemesiz.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Sürekli (Şirket Ödemeli)") {
+        
+        res <- rmarkdown::render(
+          "surekli_sirket_odemeli.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PMaluliyet_Orani = input$maluliyet,
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PKismi_Odeme_Sayisi = input$kısmiodeme,
+            PKismi_Odeme_Tarihi_1 = input$kısmiodemetarihi1,
+            PKismi_Odeme_Tutari_1 = input$ko1,
+            PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PBakici = ifelse(is.null(input$bakici_gider), "Yok", input$bakici_gider),
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+        
+      } else if (input$rapor == "Destek") {
+        
+        res <- rmarkdown::render(
+          "destek_hesap.Rmd",
+          params = list(
+            PDosya_No = input$dosya,
+            PAd_Soyad = input$isim,
+            PCinsiyet = input$cinsiyet,
+            PKusur_Orani = input$kusur,
+            PKaza_Tarihi = input$kazatarihi,
+            PDogum_Tarihi = input$dogumtarihi,
+            PKismi_Odeme_Sayisi = input$kısmiodeme,
+            PKismi_Odeme_Tarihi_1 = input$kısmiodemetarihi1,
+            PKismi_Odeme_Tutari_1 = input$ko1,
+            PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2),
+            PEs = ifelse(is.null(input$es), "Yok", input$es),
+            PEsAd = ifelse(is.null(input$es_isim), "", input$es_isim),
+            PEsDT = ifelse(is.null(input$esdogumtarihi), Sys.Date(), input$esdogumtarihi),
+            PAnne = ifelse(is.null(input$anne), "Yok", input$anne),
+            PAnneAd = ifelse(is.null(input$anne_isim), "", input$anne_isim),
+            PAnneDT = ifelse(is.null(input$annedogumtarihi), Sys.Date(), input$annedogumtarihi),
+            PBaba = ifelse(is.null(input$baba), "Yok", input$baba),
+            PBabaAd = ifelse(is.null(input$baba_isim), "", input$baba_isim),
+            PBabaDT = ifelse(is.null(input$babadogumtarihi), Sys.Date(), input$babadogumtarihi),
+            PCocuksay = ifelse(is.null(input$cocuk1) || input$cocuk1 == "Yok", 0,
+                               ifelse(is.null(input$cocuk2) || input$cocuk2 == "Yok", 1,
+                                      ifelse(is.null(input$cocuk3) || input$cocuk3 == "Yok", 2,
+                                             ifelse(is.null(input$cocuk4) || input$cocuk4 == "Yok", 3,
+                                                    ifelse(is.null(input$cocuk5) || input$cocuk5 == "Yok", 4, 5))))),
+            PCocuk1_DT = ifelse(is.null(input$cocukdogumtarihi11), Sys.Date(), input$cocukdogumtarihi11),
+            PCocuk1_Ad = ifelse(is.null(input$cocuk1_isim), "", input$cocuk1_isim),
+            PCocuk2_DT = ifelse(is.null(input$cocukdogumtarihi22), Sys.Date(), input$cocukdogumtarihi22),
+            PCocuk2_Ad = ifelse(is.null(input$cocuk2_isim), "", input$cocuk2_isim),
+            PCocuk3_DT = ifelse(is.null(input$cocukdogumtarihi33), Sys.Date(), input$cocukdogumtarihi33),
+            PCocuk3_Ad = ifelse(is.null(input$cocuk3_isim), "", input$cocuk3_isim),
+            PCocuk4_DT = ifelse(is.null(input$cocukdogumtarihi44), Sys.Date(), input$cocukdogumtarihi44),
+            PCocuk4_Ad = ifelse(is.null(input$cocuk4_isim), "", input$cocuk4_isim),
+            PCocuk5_DT = ifelse(is.null(input$cocukdogumtarihi55), Sys.Date(), input$cocukdogumtarihi55),
+            PCocuk5_Ad = ifelse(is.null(input$cocuk5_isim), "", input$cocuk5_isim)
+          )
+        )
+        file.rename(res, file)
+        
+      } else  {
+        
+        res <- rmarkdown::render(
+          "destek_hesap.Rmd",
+          params = list(
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+          )
+        )
+        file.rename(res, file)
+      }
+      
     }
   )
   
