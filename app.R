@@ -1107,64 +1107,170 @@ my_css <- "
   }
 
   /* Responsive Design */
-  @media (max-width: 1200px) {
-    .sidebar-container {
-      width: 320px;
-    }
-    
-    .main-layout {
-      margin: 0 50px 24px;
-      padding: 24px;
-    }
+@media (max-width: 1200px) {
+  .sidebar-container {
+    width: 300px;
   }
   
-  @media (max-width: 992px) {
-    .sidebar-container {
-      width: 100%;
-      margin-right: 0;
-      margin-bottom: 24px;
-      position: static;
-    }
-    
-    .main-layout {
-      flex-direction: column;
-      margin: 0 50px 16px;
-      padding: 20px;
-    }
-    
-    .header-container {
-      padding: 16px 20px;
-    }
+  .main-layout {
+    margin: 0 30px 24px;
+    padding: 24px;
+    max-width: none !important;
+    width: calc(100% - 60px) !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar-container {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
+    position: static;
   }
   
-  @media (max-width: 768px) {
-    .col-6 {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
-    
-    .header-content {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .logo-section h1 {
-      font-size: 2rem;
-    }
-    
-    .card-body {
-      padding: 24px;
-    }
-    
-    .main-layout {
-      margin: 0 50px 12px;
-      padding: 16px;
-    }
-    
-    .table-selection-group {
-      grid-template-columns: 1fr;
-    }
-    
+  .main-layout {
+    flex-direction: column;
+    margin: 0 20px 16px;
+    padding: 20px;
+    gap: 20px;
+    max-width: none !important;
+    width: calc(100% - 40px) !important;
+  }
+  
+  .header-container {
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .logo-section h1 {
+    font-size: 1.8rem;
+  }
+  
+  .logo-section p {
+    font-size: 0.9rem;
+  }
+  
+  .main-layout {
+    margin: 0 10px 12px;
+    padding: 15px;
+    gap: 15px;
+    max-width: none !important;
+    width: calc(100% - 20px) !important;
+  }
+  
+  .sidebar-container {
+    width: 100%;
+  }
+  
+  .sidebar-content {
+    padding: 16px;
+  }
+  
+  .control-group {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    padding: 16px 20px;
+  }
+  
+  .card-header h4 {
+    font-size: 1.1rem;
+  }
+  
+  .card-body {
+    padding: 16px;
+  }
+  
+  .table-selection-group {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .form-control {
+    padding: 10px 12px;
+    font-size: 16px; /* iOS zoom'u önlemek için */
+  }
+  
+  .btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .modern-card {
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-layout {
+    margin: 0 5px 8px;
+    padding: 10px;
+    gap: 10px;
+    max-width: none !important;
+    width: calc(100% - 10px) !important;
+  }
+  
+  .header-container {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+  }
+  
+  .logo-section h1 {
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-content {
+    padding: 12px;
+  }
+  
+  .control-group {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .card-header {
+    padding: 12px 15px;
+  }
+  
+  .card-body {
+    padding: 12px;
+  }
+  
+  .form-control {
+    padding: 8px 10px;
+  }
+  
+  .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .table-btn,
+  .rapor-btn {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    min-height: 35px !important;
+  }
+
 
 
   }
