@@ -1,0 +1,85 @@
+---
+title: "__AKTÜERYAL BİLİRKİŞİ RAPORU__"
+# author: "(DOSYA NO: 125381)"
+# date: Sys.Date()
+output: 
+  officedown::rdocx_document
+  # pdf_document:
+  #   toc: no
+  #   toc_depth: '2'
+  # word_document:
+  #   toc: yes
+  #   toc_depth: '2'
+  # html_document:
+  #   code_folding: none
+  #   df_print: paged
+  #   highlight: tango
+  #   number_sections: yes
+  #   theme: flatly
+  #   toc: yes
+  #   toc_depth: 2
+  #   fig.align: "left"
+    
+params:
+
+  PYasam_Tablosu: NULL
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    eval = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    dpi = 300,
+    fig.align = "center"
+    )
+```
+
+
+
+```{r echo=FALSE, include=FALSE}
+
+Sys.setlocale(locale = "Turkish")
+
+```
+
+
+
+```{r echo=FALSE}
+
+  # Load Libraries & Files ----
+
+library(readxl)
+library(tidyr)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(scales)
+library(formattable)
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+
+
+Yasam_Tablosu <- params$PYasam_Tablosu
+
+
+  
+```
+
+
+
+
+```{r echo=FALSE}
+
+Yasam_Tablosu
+
+```
+
+
+
