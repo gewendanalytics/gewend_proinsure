@@ -2670,7 +2670,7 @@ server <- function(input, output, session) {
       
       if(input$rapor == "Tüm Rapor-1 Ödeme") {
         res <- rmarkdown::render(
-          "tum_report_1odeme.Rmd",
+          "../gewend_proinsure/tum_report_1odeme.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2693,7 +2693,7 @@ server <- function(input, output, session) {
         
       } else if (input$rapor == "Tüm Rapor-2 Ödeme") {
         res <- rmarkdown::render(
-          "tum_report_2odeme.Rmd",
+          "../gewend_proinsure/tum_report_2odeme.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2719,7 +2719,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Tüm Rapor (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          "tum_report_sirket_odemesiz1.Rmd",
+          "../gewend_proinsure/tum_report_sirket_odemesiz1.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2740,7 +2740,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli+Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          "surekli_gecici_sirket_odemesiz.Rmd",
+          "../gewend_proinsure/surekli_gecici_sirket_odemesiz.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2760,7 +2760,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          "gecici_sirket_odemesiz.Rmd",
+          "../gewend_proinsure/gecici_sirket_odemesiz.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2780,7 +2780,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          "surekli_sirket_odemesiz.Rmd",
+          "../gewend_proinsure/surekli_sirket_odemesiz.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2800,7 +2800,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemeli)") {
         
         res <- rmarkdown::render(
-          "surekli_sirket_odemeli.Rmd",
+          "../gewend_proinsure/surekli_sirket_odemeli.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2824,7 +2824,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Destek") {
         
         res <- rmarkdown::render(
-          "destek_hesap.Rmd",
+          "../gewend_proinsure/destek_hesap.Rmd",
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2868,7 +2868,7 @@ server <- function(input, output, session) {
       } else  {
         
         res <- rmarkdown::render(
-          "destek_hesap.Rmd",
+          "../gewend_proinsure/destek_hesap.Rmd",
           params = list(
             PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
           )
