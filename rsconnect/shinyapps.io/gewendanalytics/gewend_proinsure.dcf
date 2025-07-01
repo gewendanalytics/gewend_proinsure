@@ -1,0 +1,12 @@
+name: gewend_proinsure
+title: gewend_proinsure
+username: gewendanalytics
+account: gewendanalytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15017339
+bundleId: 10548127
+url: https://gewendanalytics.shinyapps.io/gewend_proinsure/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,12 @@
+name: proinsure_dash
+title: proinsure_dash
+username: gewendanalytics
+account: gewendanalytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15016428
+bundleId: 10547578
+url: https://gewendanalytics.shinyapps.io/proinsure_dash/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
