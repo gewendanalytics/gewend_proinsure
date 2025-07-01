@@ -23,7 +23,7 @@ Sys.setlocale(locale = "Turkish")
 
 # VERİ GİRİŞ TABLOSU ----
 
-dosya_bilgiler <- read_excel("../PROINSURE_GEWEND/data/dosya_bilgiler.xlsx", sheet = "Sayfa1")
+dosya_bilgiler <- read_excel("../gewend_proinsure/data/dosya_bilgiler.xlsx", sheet = "Sayfa1")
 
 ortak_data_list <- list(data = dosya_bilgiler[5, ], 
                         yasam_tablosu = "TRH-2010")
@@ -36,8 +36,8 @@ ortak_data_list <- list(data = dosya_bilgiler[5, ],
 
 ortak_veri_tablosu <- function(data, yasam_tablosu) {
   
-  Asgari_Tablo <- read_excel("../PROINSURE_GEWEND/data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
-  Teminat_Limit_Tablosu <- read_excel("../PROINSURE_GEWEND/data/Teminat_Limit_Tablosu_rvz.xlsx", sheet = "Teminat")
+  Asgari_Tablo <- read_excel("../gewend_proinsure/data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
+  Teminat_Limit_Tablosu <- read_excel("../gewend_proinsure/data/Teminat_Limit_Tablosu_rvz.xlsx", sheet = "Teminat")
   
   dosya_bilgileri <- data 
   
