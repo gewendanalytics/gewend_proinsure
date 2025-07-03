@@ -93,6 +93,7 @@ Sys.setlocale(locale = "Turkish")
 my_css <- "
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   
+  
   :root {
     /* Futuristik Digital Color Palette */
     --cyber-blue: #00d4ff;
@@ -1270,6 +1271,9 @@ my_css <- "
     font-size: 10px !important;
     min-height: 35px !important;
   }
+  
+  
+  
 
 
 
@@ -1796,69 +1800,132 @@ server <- function(input, output, session) {
                   )
                 ),
                 
-                # Şirket Ödemeleri
+                # Ödemeler Bölümü - Tabs
                 div(
                   class = "col-6",
                   style = "padding-left: 15px; padding-right: 5px;",
                   div(
                     class = "modern-card",
                     div(class = "card-header",
-                        h4(icon("credit-card"), " Şirket Ödemeleri")),
+                        h4(icon("credit-card"), " Ödemeler")),
                     div(
                       class = "card-body",
-                      div(class = "form-group",
-                          tags$label(class = "form-label", "Kısmi Ödeme Sayısı"),
-                          numericInput("kısmiodeme", NULL, value = 0, min = 0, max = 3)),
-                      
-                      conditionalPanel(
-                        condition = "input.kısmiodeme == '1'",
-                        div(class = "well",
-                            h6("Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi1", "1. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko1", "1. Ödeme Tutarı", value = 0))))
+                      # Tab Navigation
+                      tags$ul(
+                        class = "nav nav-tabs",
+                        role = "tablist",
+                        tags$li(
+                          role = "presentation",
+                          class = "active",
+                          tags$a(
+                            href = "#sirket-odemeler",
+                            `aria-controls` = "sirket-odemeler",
+                            role = "tab",
+                            `data-toggle` = "tab",
+                            "Şirket Ödemeleri"
+                          )
+                        ),
+                        tags$li(
+                          role = "presentation",
+                          tags$a(
+                            href = "#sgk-odemeler",
+                            `aria-controls` = "sgk-odemeler",
+                            role = "tab",
+                            `data-toggle` = "tab",
+                            "SGK Ödemesi"
+                          )
+                        )
                       ),
                       
-                      conditionalPanel(
-                        condition = "input.kısmiodeme == '2'",
-                        div(class = "well",
-                            h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi2", "1. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko2", "1. Ödeme Tutarı", value = 0))),
-                            h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi3", "2. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko3", "2. Ödeme Tutarı", value = 0))))
-                      ),
-                      
-                      conditionalPanel(
-                        condition = "input.kısmiodeme == '3'",
-                        div(class = "well",
-                            h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi4", "1. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko4", "1. Ödeme Tutarı", value = 0))),
-                            h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi5", "2. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko5", "2. Ödeme Tutarı", value = 0))),
-                            h6("3. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
-                            div(class = "row",
-                                div(class = "col-6",
-                                    dateInput("kısmiodemetarihi6", "3. Ödeme Tarihi", value = Sys.Date())),
-                                div(class = "col-6",
-                                    numericInput("ko6", "3. Ödeme Tutarı", value = 0))))
+                      # Tab Content
+                      div(
+                        class = "tab-content",
+                        # Şirket Ödemeleri Tab
+                        div(
+                          role = "tabpanel",
+                          class = "tab-pane active",
+                          id = "sirket-odemeler",
+                          br(),
+                          div(class = "form-group",
+                              tags$label(class = "form-label", "Kısmi Ödeme Sayısı"),
+                              numericInput("kısmiodeme", NULL, value = 0, min = 0, max = 3)),
+                          
+                          conditionalPanel(
+                            condition = "input.kısmiodeme == '1'",
+                            div(class = "well",
+                                h6("Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi1", "1. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko1", "1. Ödeme Tutarı", value = 0))))
+                          ),
+                          
+                          conditionalPanel(
+                            condition = "input.kısmiodeme == '2'",
+                            div(class = "well",
+                                h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi2", "1. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko2", "1. Ödeme Tutarı", value = 0))),
+                                h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi3", "2. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko3", "2. Ödeme Tutarı", value = 0))))
+                          ),
+                          
+                          conditionalPanel(
+                            condition = "input.kısmiodeme == '3'",
+                            div(class = "well",
+                                h6("1. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi4", "1. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko4", "1. Ödeme Tutarı", value = 0))),
+                                h6("2. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi5", "2. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko5", "2. Ödeme Tutarı", value = 0))),
+                                h6("3. Ödeme Bilgileri", style = "color: var(--text-dark); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("kısmiodemetarihi6", "3. Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("ko6", "3. Ödeme Tutarı", value = 0))))
+                          )
+                        ),
+                        
+                        # SGK Ödemesi Tab
+                        div(
+                          role = "tabpanel",
+                          class = "tab-pane",
+                          id = "sgk-odemeler",
+                          br(),
+                          div(class = "form-group",
+                              tags$label(class = "form-label", "SGK Ödemesi Var mı?"),
+                              div(class = "btn-group-toggle", `data-toggle` = "buttons",
+                                  radioGroupButtons("sgk_odeme_var", NULL,
+                                               choices = list("Var" = "var", "Yok" = "yok"),
+                                               selected = "yok"))),
+                          
+                          conditionalPanel(
+                            condition = "input.sgk_odeme_var == 'var'",
+                            div(class = "well",
+                                h6("SGK Ödeme Bilgileri", style = "color: var(--cyber-blue); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.3px;"),
+                                div(class = "row",
+                                    div(class = "col-6",
+                                        dateInput("sgk_odeme_tarihi", "Ödeme Tarihi", value = Sys.Date())),
+                                    div(class = "col-6",
+                                        numericInput("sgk_odeme_tutari", "Ödeme Tutarı (TL)", value = 0, min = 0))))
+                          )
+                        )
                       )
                     )
                   )
@@ -1903,7 +1970,10 @@ server <- function(input, output, session) {
                                                     justified = TRUE, size = "sm"),
                                   conditionalPanel(
                                     condition = "input.gecici_maluliyet == 'Var'",
-                                    numericInput("maluliyet_sure", "Süre (Ay)", value = 0, step = 0.1, min = 0, max = 120)))))
+                                    numericInput("maluliyet_sure", "Süre (Ay)", value = 0.1, step = 0.1, min = 0, max = 120))
+                                  
+                                  )))
+                      
                     )
                   )
                 ),
@@ -3033,6 +3103,42 @@ server <- function(input, output, session) {
     session$reload()
   })
 }
+
+
+# SGK Ödemesi için yeni reactive'ler
+observe({
+  # SGK ödemesi "Yok" seçildiğinde tutarı sıfırla
+  if(!is.null(input$sgk_odeme_var) && input$sgk_odeme_var == "yok") {
+    updateNumericInput(session, "sgk_odeme_tutari", value = 0)
+  }
+})
+
+# SGK ödeme durumu kontrolü
+sgk_odeme_durumu <- reactive({
+  if(is.null(input$sgk_odeme_var)) {
+    return(FALSE)
+  }
+  return(input$sgk_odeme_var == "var")
+})
+
+# SGK ödeme tutarı
+sgk_odeme_tutari <- reactive({
+  if(sgk_odeme_durumu() && !is.null(input$sgk_odeme_tutari)) {
+    return(input$sgk_odeme_tutari)
+  }
+  return(0)
+})
+
+# SGK ödeme tarihi
+sgk_odeme_tarihi <- reactive({
+  if(sgk_odeme_durumu() && !is.null(input$sgk_odeme_tarihi)) {
+    return(input$sgk_odeme_tarihi)
+  }
+  return(NA)
+})
+
+
+
 
 # Uygulamayı Çalıştır
 shinyApp(ui = ui, server = server)
