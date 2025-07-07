@@ -21,23 +21,25 @@ output:
   #   fig.align: "left"
     
 params:
+  PDosya_No: NULL
+  PAd_Soyad: NULL
+  PCinsiyet: NULL
   PMaluliyet_Orani: NULL
   PKusur_Orani: NULL
   PKaza_Tarihi: NULL
   PDogum_Tarihi: NULL
-  PDosya_No: NULL
-  PAd_Soyad: NULL
-  PCinsiyet: NULL
-  PGecici_Maluliyet_Sure: NULL
   PKismi_Odeme_Sayisi: NULL
   PKismi_Odeme_Tarihi_1: NULL
   PKismi_Odeme_Tutari_1: NULL
-  # PKısmi_Odeme_Tarihi_2: NULL
-  # PKısmi_Odeme_Tutarı_2: NULL
+  PKismi_Odeme_Tarihi_2: NULL
+  PKismi_Odeme_Tutari_2: NULL
+  PGecici_Maluliyet_Sure: NULL
+  PBakici: NULL
+  PBakici_Sure: NULL
   PGelir: NULL
   PYasam_Tablosu: NULL
-  PBakici_Sure: NULL
-  PBakici: NULL
+  Psgk_odeme_tutar: NULL
+
 ---
 
 
@@ -84,7 +86,6 @@ library(formattable)
   dosya_no <- params$PDosya_No
   # dosya_no <- dosya_bilgiler$Dosya_No
 
-
   
   # Genel Bilgiler ----
   
@@ -92,46 +93,71 @@ library(formattable)
   pasif_donem_yas <- 60
   faiz_oranı <- 9
   
-  # Kişisel Bilgiler ----
+  
+# Rmd dosyasında, ortak_veri_tablosu fonksiyonunu çağırmadan önce
+# Veri yapısını hazırla
 
-  Ad_Soyad <- params$PAd_Soyad
-  Cinsiyet <- params$PCinsiyet
-  Dogum_Tarihi <- as.Date(params$PDogum_Tarihi)
-  Gelir <- params$PGelir
-  # Gelir_Durumu <- "Bekar"
-  Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
-  Maluliyet_Orani <- params$PMaluliyet_Orani
-  Kusur_Oranı <- params$PKusur_Orani
-  Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_Sure
-  Kısmi_Odeme_Sayısı <- params$PKismi_Odeme_Sayisi
-  Kısmi_Odeme_Tarihi_1 <- as.Date(params$PKismi_Odeme_Tarihi_1)
-  Kısmi_Odeme_Tutarı_1 <- params$PKismi_Odeme_Tutari_1
+# Kişisel Bilgiler
+  
+dosya_no <- params$PDosya_No
+Ad_Soyad <- params$PAd_Soyad
+Cinsiyet <- params$PCinsiyet
+Dogum_Tarihi <- as.Date(params$PDogum_Tarihi)
+Gelir <- params$PGelir
+Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
+Maluliyet_Oranı <- params$PMaluliyet_Orani
+Kusur_Oranı <- params$PKusur_Orani
+Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_Sure
+Yasam_Tablosu <- params$PYasam_Tablosu
+sgk_odeme_tutari <- params$Psgk_odeme_tutar
+Kısmi_Odeme_Tarihi_1 <- as.Date(params$PKismi_Odeme_Tarihi_1)
+Kısmi_Odeme_Tarihi_2 <- as.Date(params$PKismi_Odeme_Tarihi_2)
+Kısmi_Odeme_Tutarı_1 <- params$PKısmi_Odeme_Tutarı_1
+Kısmi_Odeme_Tutarı_2 <- params$PKısmi_Odeme_Tutarı_2
+Bakici_Gideri_Suresi_gun <- params$PBakici_Sure
+
+
+  # dosya_no <- as.character(params$PDosya_No)
+  # 
+  # 
+  # Gelir_Durumu <- params$PGelir
+  # Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
+  # Maluliyet_Oranı <- params$PMaluliyet_Orani
+  # Kusur_Oranı <- params$PKusur_Orani
+  # Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_sure
+  # Kısmi_Odeme_Sayısı <- params$PKısmi_Odeme_Sayısı
+  # Kısmi_Odeme_Tarihi_1 <- as.Date(params$PKısmi_Odeme_Tarihi_1)
+  # Kısmi_Odeme_Tutarı_1 <- params$PKısmi_Odeme_Tutarı_1
   # Kısmi_Odeme_Tarihi_2 <- as.Date(params$PKısmi_Odeme_Tarihi_2)
   # Kısmi_Odeme_Tutarı_2 <- params$PKısmi_Odeme_Tutarı_2
-  Yasam_Tablosu <- params$PYasam_Tablosu
-  # Bakıcı_gideri <- params$PBakici
-  # Bakıcı_gideri_suresi <- params$PBakici_Sure
-  #
+  # Yasam_Tablosu <- params$PYasam_Tablosu
+  # Bakici_Gideri_Suresi_gun <- params$PBakici_Sure
 
-  
-  dosya_bilgiler <- tibble(
-    "Dosya_No" = dosya_no,
-    "Ad-Soyad" = Ad_Soyad,
-    "Dogum_Tarihi"  = Dogum_Tarihi,
-    "Gelir" = Gelir,
-    "Cinsiyet" = Cinsiyet, 
-    "Kaza Tarihi" = as.character(Kaza_Tarihi),
-    "Maluliyet Orani" = Maluliyet_Orani,
-    "Teknik Faiz" = Teknik_Faiz,
-    "Yaşam Tablosu" = Yasam_Tablosu,
-    "Kusur Orani" = Kusur_Oranı,
-    "Gecici_Maluliyet_sure" = Gecici_Maluliyet_sure
+# Veri yapısını fonksiyonun beklediği formatta oluştur
+dosya_info <- tibble(
+  "Dosya_No" = dosya_no,
+  "Ad_Soyad" = Ad_Soyad,
+  "Dogum_Tarihi" = Dogum_Tarihi,
+  "Gelir" = Gelir,
+  "Cinsiyet" = Cinsiyet, 
+  "Kaza_Tarihi" = Kaza_Tarihi,
+  "Maluliyet_Orani" = Maluliyet_Oranı,
+  "Kusur_Orani" = Kusur_Oranı,
+  "Gecici_Maluliyet_sure" = Gecici_Maluliyet_sure,
+  "Rapor_Turu" = "Geçici (Şirket Ödemesiz)",
+  "Kısmi_Odeme_Sayısı" = NA,
+  "Kısmi_Odeme_Tarihi_1" = NA,
+  "Kısmi_Odeme_Tutarı_1" = NA,
+  "Kısmi_Odeme_Tarihi_2" = NA,
+  "Kısmi_Odeme_Tutarı_2" = NA,
+  "Bakıcı_Gideri_Süresi_(gun)" = NA
+)
 
-  )
-
-
-ortak_data_list <- list(data = dosya_bilgiler, 
+ortak_data_list2 <- list(data = dosya_info, 
                         yasam_tablosu = Yasam_Tablosu)
+
+ortak_veri_tbl <- ortak_veri_tablosu(ortak_data_list2$data, ortak_data_list2$yasam_tablosu)
+
 
   
 ```
@@ -220,6 +246,18 @@ str_glue("{ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik
 ```
 
 
+
+
+```{r echo=FALSE}
+
+kalan_tazminat <- gecici_donem_tazminat - sgk_odeme_tutari
+
+if (sgk_odeme_tutari > 0 ) {
+    str_glue("Bununla birlikte SGK tarafından {sgk_odeme_tutari} TL tutarında ödeme yapıldığı tespit edilmiştir. Hesaplanan geçici dönem tazminatı {kalan_tazminat} TL'dir.bu nu kullan") } else {str_glue(" ")}
+
+```
+
+
 ## SONUÇ
 
 
@@ -233,7 +271,7 @@ str_glue("Bilirkişiliğimize iletilen dosya kapsamında yapılan inceleme netic
 ```{r echo=FALSE}
 
 
-str_glue("* {ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {gecici_donem_tazminat} TL olarak hesaplanmıştır.")
+str_glue("* {ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {kalan_tazminat} TL olarak hesaplanmıştır.")
 
 ```
 
@@ -246,4 +284,3 @@ Arz ederim.
 **Bilirkişi: Erdener USTA**
 **(Lisanslı Aktüer-Sicil No: 132)**
 **(Tahkim Sicil No: 11524)**
-

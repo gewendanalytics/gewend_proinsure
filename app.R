@@ -1912,8 +1912,8 @@ server <- function(input, output, session) {
                               tags$label(class = "form-label", "SGK Ödemesi Var mı?"),
                               div(class = "btn-group-toggle", `data-toggle` = "buttons",
                                   radioGroupButtons("sgk_odeme_var", NULL,
-                                               choices = list("Var" = "var", "Yok" = "yok"),
-                                               selected = "yok"))),
+                                                    choices = list("Var" = "var", "Yok" = "yok"),
+                                                    selected = "yok"))),
                           
                           conditionalPanel(
                             condition = "input.sgk_odeme_var == 'var'",
@@ -1972,7 +1972,7 @@ server <- function(input, output, session) {
                                     condition = "input.gecici_maluliyet == 'Var'",
                                     numericInput("maluliyet_sure", "Süre (Ay)", value = 0.1, step = 0.1, min = 0, max = 120))
                                   
-                                  )))
+                              )))
                       
                     )
                   )
@@ -2384,7 +2384,7 @@ server <- function(input, output, session) {
                  "Gelir",
                  "Asgari Ucret Durumu",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
                  "Bakıcı Süresi (ay)",
@@ -2421,7 +2421,7 @@ server <- function(input, output, session) {
                  "Gelir",
                  "Asgari Ucret Durumu",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Bakıcı Süresi (ay)",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
@@ -2461,7 +2461,7 @@ server <- function(input, output, session) {
                  "Gelir",
                  "Asgari Ucret Durumu",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
                  "Bakıcı Süresi (ay)",
@@ -2506,7 +2506,7 @@ server <- function(input, output, session) {
                  "Doğum Tarihi",
                  "Gelir",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Bakıcı Süresi (ay)",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
@@ -2543,7 +2543,7 @@ server <- function(input, output, session) {
                  "Doğum Tarihi",
                  "Gelir",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
                  "Bakıcı Süresi (ay)",
@@ -2581,7 +2581,7 @@ server <- function(input, output, session) {
                  "Doğum Tarihi",
                  "Gelir",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
                  "Bakıcı Süresi (ay)",
@@ -2624,7 +2624,7 @@ server <- function(input, output, session) {
                  "Doğum Tarihi",
                  "Gelir",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Bakıcı Süresi (ay)",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
@@ -2658,7 +2658,7 @@ server <- function(input, output, session) {
                  "Gelir",
                  "Asgari Ucret Durumu",
                  "Kaza Tarihi",
-                 "Maluliyet Oranı",
+                 "Maluliyet Oran",
                  "Bakıcı Süresi (ay)",
                  "Kusur Oranı",
                  "Geçici Maluliyet (ay)",
@@ -2846,7 +2846,7 @@ server <- function(input, output, session) {
       
       if(input$rapor == "Tüm Rapor-1 Ödeme") {
         res <- rmarkdown::render(
-          file.path(getwd(), "tum_report_1odeme.Rmd"),
+          file.path(getwd(), "../gewend_proinsure/tum_report_1odeme.Rmd"),
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2869,7 +2869,7 @@ server <- function(input, output, session) {
         
       } else if (input$rapor == "Tüm Rapor-2 Ödeme") {
         res <- rmarkdown::render(
-          file.path(getwd(), "tum_report_2odeme.Rmd"),
+          file.path(getwd(), "../gewend_proinsure/tum_report_2odeme.Rmd"),
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2895,7 +2895,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Tüm Rapor (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "tum_report_sirket_odemesiz1.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/tum_report_sirket_odemesiz1.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2917,7 +2917,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli+Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "surekli_gecici_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/surekli_gecici_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2938,20 +2938,27 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "gecici_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/gecici_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
             PCinsiyet = input$cinsiyet,
             PMaluliyet_Orani = input$maluliyet,
-            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
             PKusur_Orani = input$kusur,
             PKaza_Tarihi = input$kazatarihi,
             PDogum_Tarihi = input$dogumtarihi,
+            PKismi_Odeme_Sayisi = input$kısmiodeme,
+            PKismi_Odeme_Tarihi_1 = input$kısmiodemetarihi2,
+            PKismi_Odeme_Tutari_1 = input$ko2,
+            PKismi_Odeme_Tarihi_2 = input$kısmiodemetarihi3,
+            PKismi_Odeme_Tutari_2 = input$ko3,
             PGecici_Maluliyet_Sure = ifelse(is.null(input$maluliyet_sure), 0, input$maluliyet_sure),
+            PBakici = ifelse(is.null(input$bakici_gider), "Yok", input$bakici_gider),
+            PBakici_Sure = ifelse(is.null(input$bakici_sure), 0, input$bakici_sure),
             PGelir = ifelse(is.null(input$asgari_durum), "Bekar", input$asgari_durum),
-            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
+            PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2),
+            Psgk_odeme_tutar = input$sgk_odeme_tutari
           )
         )
         file.rename(res, file)
@@ -2959,7 +2966,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "surekli_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/surekli_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2980,7 +2987,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemeli)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "surekli_sirket_odemeli.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/surekli_sirket_odemeli.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -3005,7 +3012,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Destek") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "destek_hesap.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/destek_hesap.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -3050,7 +3057,7 @@ server <- function(input, output, session) {
       } else  {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "destek_hesap.Rmd"),
+          file.path(getwd(),  "../gewend_proinsure/destek_hesap.Rmd"),
           params = list(
             PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
           )

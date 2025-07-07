@@ -17,7 +17,7 @@ lapply(packages, library, character.only = TRUE)
 library(collapsibleTree)
 
 Sys.setlocale(locale = "Turkish")
-##
+
 
 # ////////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +25,7 @@ Sys.setlocale(locale = "Turkish")
 
 dosya_bilgiler <- read_excel("../gewend_proinsure/data/dosya_bilgiler.xlsx", sheet = "Sayfa1")
 
-ortak_data_list <- list(data = dosya_bilgiler[5, ], 
+ortak_data_list <- list(data = dosya_bilgiler[4, ], 
                         yasam_tablosu = "TRH-2010")
 
 # ////////////////////////////////////////////////////////////////////////////////
@@ -36,10 +36,40 @@ ortak_data_list <- list(data = dosya_bilgiler[5, ],
 
 ortak_veri_tablosu <- function(data, yasam_tablosu) {
   
-  Asgari_Tablo <- read_excel("../gewend_proinsure/data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
-  Teminat_Limit_Tablosu <- read_excel("../gewend_proinsure/data/Teminat_Limit_Tablosu_rvz.xlsx", sheet = "Teminat")
+  Asgari_Tablo <- read_excel("../GEWEND_PROINSURE_MAIN/data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
+  # Teminat_Limit_Tablosu <- read_excel("../gewend_proinsure/data/Teminat_Limit_Tablosu_rvz.xlsx", sheet = "Teminat")
+  
+  Teminat_Limit_Tablosu <- tibble::tribble(
+    ~Donem, ~Teminat_Limiti,
+    
+    "2010-01-01/2010-12-31", 150000L,
+    "2011-01-01/2011-06-30", 200000L,
+    "2011-07-01/2011-12-31", 200000L,
+    "2012-01-01/2012-06-30", 225000L,
+    "2012-07-01/2012-12-31", 225000L,
+    "2013-01-01/2013-06-30", 250000L,
+    "2013-07-01/2013-12-31", 250000L,
+    "2014-01-01/2014-06-30", 268000L,
+    "2014-07-01/2014-12-31", 268000L,
+    "2015-01-01/2015-06-30", 290000L,
+    "2015-07-01/2015-12-31", 290000L,
+    "2016-01-01/2016-12-31", 310000L,
+    "2017-01-01/2017-12-31", 330000L,
+    "2018-01-01/2018-12-31", 360000L,
+    "2019-01-01/2019-06-30", 360000L,
+    "2019-07-01/2019-12-31", 390000L,
+    "2020-01-01/2020-12-31", 410000L,
+    "2021-01-01/2021-12-31", 430000L,
+    "2022-01-01/2022-06-30", 500000L,
+    "2022-07-01/2022-12-31", 1000000L,
+    "2023-01-01/2023-12-31", 1200000L,
+    "2024-01-01/2024-12-31", 5000000L,
+    "2025-01-01/2025-12-31", 9000000L
+  )
+  
   
   dosya_bilgileri <- data 
+
   
   # Genel Bilgiler 
   Teknik_Faiz <- 0
@@ -118,14 +148,16 @@ ortak_veri_tablosu <- function(data, yasam_tablosu) {
     Asgari_Tablo %>% 
       left_join(gelir_tablosu) %>%
       separate(Donem, sep = "/", into = c("Donem_Baslangic", "Donem_Son")) %>%
-      mutate(D_B = as.Date(Donem_Baslangic), D_S = as.Date(Donem_Son))
+      mutate(D_B = as.Date(Donem_Baslangic), 
+             D_S = as.Date(Donem_Son))
   })
   
   # Kaza Tarihi Teminat Limiti
   
   Teminat_Limit_Tablosu <- Teminat_Limit_Tablosu %>% 
     separate(Donem, sep = "/", into = c("Donem_Baslangic", "Donem_Son")) %>%
-    mutate(D_B = as.Date(Donem_Baslangic), D_S = as.Date(Donem_Son))
+    mutate(D_B = as.Date(Donem_Baslangic), 
+           D_S = as.Date(Donem_Son))
   
   kaza_tarihi_teminat <- Teminat_Limit_Tablosu %>% 
     filter(D_S >= Kaza_Tarihi & Kaza_Tarihi > D_B)
@@ -148,15 +180,15 @@ ortak_veri_tablosu <- function(data, yasam_tablosu) {
   ## Hesaplama Tarihine göre beklenen ömür ----
   
   PR_TRH_2010 <- if (Yasam_Tablosu == "TRH-2010") {
-    read_excel("../KURUMSAL_PROINSURE/data/All_Tables.xlsx", sheet = "TRH-2010")
+    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TRH-2010")
   } else if  (Yasam_Tablosu == "TUIK_20-22") {
-    read_excel("../KURUMSAL_PROINSURE/data/All_Tables.xlsx", sheet = "TUIK_20-22")
+    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_20-22")
   } else if (Yasam_Tablosu == "TUIK_19-21") {
-    read_excel("../KURUMSAL_PROINSURE/data/All_Tables.xlsx", sheet = "TUIK_19-21")
+    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_19-21")
   } else if (Yasam_Tablosu == "TUIK_18-20") {
-    read_excel("../KURUMSAL_PROINSURE/data/All_Tables.xlsx", sheet = "TUIK_18-20")
+    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_18-20")
   } else {
-    read_excel("../KURUMSAL_PROINSURE/data/All_Tables.xlsx", sheet = "PMF-1931")
+    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "PMF-1931")
   }
   
   
@@ -220,7 +252,7 @@ ortak_veri_tablosu <- function(data, yasam_tablosu) {
   
   
   parametre_tablosu <- data.frame(PARAMETRE = c("Dosya_No", "Rapor_Turu", "Ad-Soyad", "Kaza Tarihi Yas", "Hesap Tarihi Yas", "Cinsiyet",  "Gelir_Durumu",  "Kaza_Tarihi", "Maluliyet Oranı", "Teknik Faiz", "Yaşam Tablosu", "Kusur Oranı", "Geçici İş Göremezlik Süresi (ay)", "Kısmi_Odeme_Sayısı", "Ödeme Tarihi-1", "Ödeme Tutarı-1","Ödeme Tarihi-2", "Ödeme Tutarı-2", "Bakıcı Gideri Süresi (gün)"),
-                                  DEĞER = c(dosya_no, rapor_turu, Ad_Soyad, kaza_tarihi_yas, hesap_tarihi_yas, Cinsiyet, Gelir_Durumu, Kaza_Tarihi, 
+                                  DEĞER = c(dosya_no, rapor_turu, Ad_Soyad, kaza_tarihi_yas, hesap_tarihi_yas, Cinsiyet, Gelir_Durumu, as.character(Kaza_Tarihi), 
                                             Maluliyet_Oranı, Teknik_Faiz, Yasam_Tablosu, Kusur_Oranı, Gecici_Maluliyet_sure, Kısmi_Odeme_Sayısı, Kısmi_Odeme_Tarihi_1, Kısmi_Odeme_Tutarı_1, Kısmi_Odeme_Tarihi_2, Kısmi_Odeme_Tutarı_2, Bakici_Gideri_Suresi_gun)
   )
   
