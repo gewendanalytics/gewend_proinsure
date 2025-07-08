@@ -140,7 +140,7 @@ dosya_info <- tibble(
 ortak_data_list2 <- list(data = dosya_info, 
                         yasam_tablosu = Yasam_Tablosu)
 
-ortak_veri_tbl <- ortak_veri_tablosu(ortak_data_list2$data, ortak_data_list2$yasam_tablosu)
+ortak_veri_tbl2 <- ortak_veri_tablosu(ortak_data_list2$data, ortak_data_list2$yasam_tablosu)
 
 
   
@@ -205,7 +205,7 @@ Tazminat hesabında kullanılacak parametrelerin değerleri bilirkişiliğimize 
 
 ```{r echo=FALSE}
 
-knitr::kable(ortak_veri_tbl$parametre_tablosu, caption = "HESAPLAMA PARAMETRELERİ")
+knitr::kable(ortak_veri_tbl2$parametre_tablosu, caption = "HESAPLAMA PARAMETRELERİ")
 
 ```
 
@@ -220,11 +220,11 @@ Kaza tarihinden geçici iş göremezlik süresi ve hemen akabinde sürekli malul
 
 ```{r echo=FALSE}
 
-knitr::kable(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl), caption = "Hesap Tarihi - Geçici Maluliyet Tablosu")
+knitr::kable(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl2), caption = "Hesap Tarihi - Geçici Maluliyet Tablosu")
 
-gecici_donem_tazminat <- sum(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl)$Donem_Tazminat)
+gecici_donem_tazminat <- sum(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl2)$Donem_Tazminat)
 
-str_glue("{ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {gecici_donem_tazminat} TL olarak hesaplanmıştır.")
+str_glue("{ortak_veri_tbl2$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {gecici_donem_tazminat} TL olarak hesaplanmıştır.")
 
 
 ```
@@ -255,7 +255,7 @@ str_glue("Bilirkişiliğimize iletilen dosya kapsamında yapılan inceleme netic
 ```{r echo=FALSE}
 
 
-str_glue("* {ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {kalan_tazminat} TL olarak hesaplanmıştır.")
+str_glue("* {ortak_veri_tbl2$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {kalan_tazminat} TL olarak hesaplanmıştır.")
 
 ```
 

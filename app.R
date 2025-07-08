@@ -2841,7 +2841,7 @@ server <- function(input, output, session) {
   
   ## GENERATE REPORT DOWNLOAD HANDLER - BİRİNCİ APPDEN KOPYALANDI ----
   output$generate_report <- downloadHandler(
-    filename = "rendered_report.docx",
+    filename = "ProInsure_Report.docx",
     content = function(file) {
       
       if(input$rapor == "Tüm Rapor-1 Ödeme") {
