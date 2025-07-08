@@ -2846,7 +2846,7 @@ server <- function(input, output, session) {
       
       if(input$rapor == "Tüm Rapor-1 Ödeme") {
         res <- rmarkdown::render(
-          file.path(getwd(), "../gewend_proinsure/tum_report_1odeme.Rmd"),
+          file.path(getwd(), "tum_report_1odeme.Rmd"),
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2869,7 +2869,7 @@ server <- function(input, output, session) {
         
       } else if (input$rapor == "Tüm Rapor-2 Ödeme") {
         res <- rmarkdown::render(
-          file.path(getwd(), "../gewend_proinsure/tum_report_2odeme.Rmd"),
+          file.path(getwd(), "tum_report_2odeme.Rmd"),
           params = list(
             PDosya_No = input$dosya,
             PAd_Soyad = input$isim,
@@ -2895,7 +2895,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Tüm Rapor (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/tum_report_sirket_odemesiz1.Rmd"),
+          file.path(getwd(),  "tum_report_sirket_odemesiz1.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2917,7 +2917,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli+Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/surekli_gecici_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "surekli_gecici_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2938,7 +2938,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Geçici (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/gecici_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "gecici_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2966,7 +2966,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemesiz)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/surekli_sirket_odemesiz.Rmd"),
+          file.path(getwd(),  "surekli_sirket_odemesiz.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -2987,7 +2987,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Sürekli (Şirket Ödemeli)") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/surekli_sirket_odemeli.Rmd"),
+          file.path(getwd(),  "surekli_sirket_odemeli.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -3012,7 +3012,7 @@ server <- function(input, output, session) {
       } else if (input$rapor == "Destek") {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/destek_hesap.Rmd"),
+          file.path(getwd(),  "destek_hesap.Rmd"),
           
           params = list(
             PDosya_No = input$dosya,
@@ -3057,7 +3057,7 @@ server <- function(input, output, session) {
       } else  {
         
         res <- rmarkdown::render(
-          file.path(getwd(),  "../gewend_proinsure/destek_hesap.Rmd"),
+          file.path(getwd(),  "destek_hesap.Rmd"),
           params = list(
             PYasam_Tablosu = ifelse(is.null(input$tablo2), "TRH-2010", input$tablo2)
           )

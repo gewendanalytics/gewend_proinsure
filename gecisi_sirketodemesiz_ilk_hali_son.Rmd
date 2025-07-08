@@ -1,0 +1,262 @@
+---
+title: "__AKTÜERYAL BİLİRKİŞİ RAPORU__"
+# author: "(DOSYA NO: 125381)"
+# date: Sys.Date()
+output: 
+  officedown::rdocx_document
+  # pdf_document:
+  #   toc: no
+  #   toc_depth: '2'
+  # word_document:
+  #   toc: yes
+  #   toc_depth: '2'
+  # html_document:
+  #   code_folding: none
+  #   df_print: paged
+  #   highlight: tango
+  #   number_sections: yes
+  #   theme: flatly
+  #   toc: yes
+  #   toc_depth: 2
+  #   fig.align: "left"
+    
+params:
+  PMaluliyet_Orani: NULL
+  PKusur_Orani: NULL
+  PKaza_Tarihi: NULL
+  PDogum_Tarihi: NULL
+  PDosya_No: NULL
+  PAd_Soyad: NULL
+  PCinsiyet: NULL
+  PGecici_Maluliyet_Sure: NULL
+  PKismi_Odeme_Sayisi: NULL
+  PKismi_Odeme_Tarihi_1: NULL
+  PKismi_Odeme_Tutari_1: NULL
+  # PKısmi_Odeme_Tarihi_2: NULL
+  # PKısmi_Odeme_Tutarı_2: NULL
+  PGelir: NULL
+  PYasam_Tablosu: NULL
+  PBakici_Sure: NULL
+  PBakici: NULL
+  Psgk_odeme_tutar: NULL
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    eval = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    dpi = 300,
+    fig.align = "center"
+    )
+```
+
+
+
+```{r echo=FALSE, include=FALSE}
+
+Sys.setlocale(locale = "Turkish")
+
+```
+
+
+
+```{r echo=FALSE}
+
+  # Load Libraries & Files ----
+
+library(readxl)
+library(tidyr)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(scales)
+library(formattable)
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+
+  # Dosya Bilgileri ----
+
+  dosya_no <- params$PDosya_No
+  # dosya_no <- dosya_bilgiler$Dosya_No
+
+  
+  # Genel Bilgiler ----
+  
+  Teknik_Faiz <- 0
+  pasif_donem_yas <- 60
+  faiz_oranı <- 9
+  
+  
+# Rmd dosyasında, ortak_veri_tablosu fonksiyonunu çağırmadan önce
+# Veri yapısını hazırla
+
+# Kişisel Bilgiler
+dosya_no <- params$PDosya_No
+Ad_Soyad <- params$PAd_Soyad
+Cinsiyet <- params$PCinsiyet
+Dogum_Tarihi <- as.Date(params$PDogum_Tarihi)
+Gelir <- params$PGelir
+Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
+Maluliyet_Oranı <- params$PMaluliyet_Orani
+Kusur_Oranı <- params$PKusur_Orani
+Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_Sure
+Yasam_Tablosu <- params$PYasam_Tablosu
+sgk_odeme_tutari <- params$Psgk_odeme_tutar
+
+# Veri yapısını fonksiyonun beklediği formatta oluştur
+dosya_bilgiler <- tibble(
+  "Dosya_No" = dosya_no,
+  "Ad_Soyad" = Ad_Soyad,
+  "Dogum_Tarihi" = Dogum_Tarihi,
+  "Gelir" = Gelir,
+  "Cinsiyet" = Cinsiyet, 
+  "Kaza_Tarihi" = Kaza_Tarihi,
+  "Maluliyet_Orani" = Maluliyet_Oranı,
+  "Kusur_Orani" = Kusur_Oranı,
+  "Gecici_Maluliyet_sure" = Gecici_Maluliyet_sure,
+  "Rapor_Turu" = "Geçici (Şirket Ödemesiz)",
+  "Kısmi_Odeme_Sayısı" = 0,
+  "Kısmi_Odeme_Tarihi_1" = as.Date(NA),
+  "Kısmi_Odeme_Tutarı_1" = 0,
+  "Kısmi_Odeme_Tarihi_2" = as.Date(NA),
+  "Kısmi_Odeme_Tutarı_2" = 0,
+  "Bakıcı_Gideri_Süresi_(gun)" = 0
+)
+
+ortak_data_list2 <- list(data = dosya_bilgiler, 
+                        yasam_tablosu = Yasam_Tablosu)
+
+ortak_veri_tbl <- ortak_veri_tablosu(ortak_data_list2$data, ortak_data_list2$yasam_tablosu)
+
+
+  
+```
+
+
+
+## GENEL BİLGİLER
+
+Sayın Hakemliğinizce tarafımıza iletilen dosya kapsamında geçici iş göremezlik tazminatı, sürekli maluliyet tazminatı ve geçici bakıcı gideri tazminatı hesaplaması Bilirkişiliğimiz teknik bilgisi kapsamında hesaplanmıştır. 
+
+Dosya kapsamında elde edilen bilgiler kapsamında yapılan hesaplamaya ilişkin tüm bilgiler ve aktüeryal hesaplama parametreleri, formülleri ve hesaplama prensipleri ile malul için hesaplanan tazminat tutarına ilişkin bilgiler açık ve anlaşılabilir olacak şekilde ilerleyen bölümlerde detaylandırılmaktadır.
+
+## HESAPLAMA PRENSİPLERİ
+
+Aktüeryal olarak maluliyet tazminatı hesaplaması, mevzuata uygun olarak temin edilecek maluliyet oranına sahip kişinin kaza tarihinden itibaren muhtemel yaşam süresi boyunca elde edeceği gelirden kaza nedeniyle ne kadar tutarda mağdur kalacağının tahminini içermektedir.
+
+Söz konusu tahmin yapılırken temel olarak iki bölümde hesaplama yapılmaktadır;
+
+**Bilinen dönem hesaplaması:** Malulün kaza tarihinden itibaren bilirkişi raporunun hazırlandığı tarihe kadar olan bölümde (bilinen dönem hesaplaması) sahip olduğu bilinen geliri, kazada kusuru (kusur oranı), kaza sonucu oluşan maluliyet oranı dikkate alınarak bilinen dönem tazminatı herhangi bir aktüeryal tahmin yapılmadan hesaplanır. Bilinen dönemde yaşam ihtimalini içeren aktüeryal herhangi bir hesaplama yapılmamasının temel nedeni bu bölümde kişinin zaten yaşıyor olduğunun bilinmesidir.
+
+Bilinen dönem geliri, dosya kapsamında beyan edilen aynı yıla ait bordrolardan temin edilmektedir. Bu bordrolardan elde edilen gelirin yıllar itibariyle her yıla ait aylık ortalaması alınarak yıllık geliri üzerinden hesaplama yapılmaktadır. Şayet düzenli bir bordro olmaması durumunda bordrodaki tutar asgari ücrete oranlanır, bu oran asgari ücret üzerinden diğer dönemlere de yansıtılarak hesaplama yapılır. Eğer dosya kapsamında herhangi bir bordro görülememiş ise asgari ücret üzerinden hesaplaama yapılır.
+
+**Bilinmeyen dönem hesaplaması:** Bu kısım bilirkişi raporunun hazırlandığı tarihten itibaren malulün muhtemel yaşam süresi boyunca yapılacak hesaplamayı içermektedir. Malul, bu dönemde belli bir yaşa kadar aktif olarak çalışacağı (aktif dönem), belirli bir yaştan itibaren ise emekli olarak pasif dönemde kalacağı (pasif dönem) şeklinde iki bölüme ayrılmaktadır. Yargıtay kararları ve bu alandaki artık kabul edilmiş pasif yaş başlangıcı olan 65 yaşa kadar malulün aktif dönemde elde edeceği gelir kullanılırken, pasif dönemde ise bu konuda yerleşik içtihatler dikkate alındığında AGİ hariç net asgari ücret kullanılmaktadır. 
+
+Bilinmeyen dönem hesaplaması kişinin yaşam ihtimalinin belirli bir gelir ile elde edeceği, bu gelir (aktif ve pasif dönem ayrı ayrı) üzerinden kazadaki kusur oranı ile bu dönemde daimi maluliyet oranın çarpılması sonucu hesaplanmaktadır.
+
+Kişinin bilinmeyen dönemde hangi yaşam ihtimaline sahip olduğu hususu temel olarak aktüerya alanını ilgilendirmektedir. Bu konuda en sağlıklı, yansız ve tarafsız bilgi ancak yaşam tablolarından elde edilebilmektedir. Hesaplamalarda kullanılan Yaşam Tabloları genel olarak TRH 2010 Kadın ve Erkek, PMF tablolarıdır. Bu tabloların dışında da yaşam tablolarının bulunduğunu belirtmekte fayda bulunmaktadır, ancak Yargıtay kararları dikkate alındığında yaşam tablosu PMF kullanılırken, sigortacılık mevzuatı kapsamında ise TRH 2010 kullanılmaktadır. Her iki tablodan elde edilecek tazminat tutarı yaşam ihtimallerinin farklı olmasından dolayı haliyle farklı çıkabilmektedir.
+
+Bununla birlikte, yaşam tablolarına ilaveten, ilerde malulün elde edeceği gelirin bugünkü değerinin hesaplanmasında **teknik faiz** kavramı kullanılmaktadır. Teknik faiz PMF yaşam tablosunun kullanıldığı hesaplamalarda “0” (sıfır) olarak kullanılırken, sigortacılık mevzuatında ise TRH 2010 tablosu ile birlikte teknik faiz %1,8 olarak kullanılmaktadır. 
+
+![](data/grafik.jpg)
+TRH Yaşam tablosu ile teknik faizin birlikte kullanıldığı malulün gelecekteki gelir akışlarının (iratların) yaşam boyu yaşama ihtimalleri ile ağırlıklandırılmış bugünkü değerini içeren aktüeryal annüite faktörü hesaplaması ve dönemlere ilişkin yapılacak tazminat hesaplamalarının detayları aşağıda verilmektedir:  
+
+  Bilinmeyen Aktif Dönem Tazminatı Annüite Faktörü (AAF)= [N(X)-N(60)]/D(X)
+  
+  Bilinmeyen Aktif Dönem Tazminatı = AAF * Bilinen En Son Yıllık Gelir * Kusur Oranı * Maluliyet Oranı
+
+  Bilinmeyen Pasif Dönem Tazminatı Annüite Faktörü (PAF)= N(60)/D(60)
+  
+  Bilinmeyen Aktif Dönem Tazminatı = PAF * Pasif Dönem Yıllık Gelir (AGİ hariç net asgari ücret) * Kusur  Oranı * Maluliyet Oranı
+                 
+  TRH yaşam tablosu ve teknik faiz kullanılarak yapılan aktüeryal hesaplamada kullanılan N ve D değerleri teknik faiz ile indirgenmiş yaşam tablosundan elde edilmektedir.
+
+Yaşam tablosu ile %0 teknik faiz kullanılarak yapılan progresif rant hesaplama yönteminde ise teknik faiz “0” (sıfır) olduğu için annüite faktörü doğrudan kişinin hesaplama tarihindeki yaşı temel alınarak yaşam tablosundan elde edilen beklenen ömre (E) eşit olmaktadır. Bu yöntemle yapılan hesaplama adımları ve tazminat hesaplaması detayı aşağıdaki gibidir:
+
+  Bilinmeyen Aktif Dönem Tazminatı = (60-X) * Bilinen En Son Yıllık Gelir * Kusur Oranı * Maluliyet Oranı
+  
+  Bilinmeyen Pasif Dönem Tazminatı Annüite Faktörü = (X+E-60) * Pasif Dönem Yıllık Gelir (AGİ hariç net asgari ücret) * Kusur Oranı * Maluliyet Oranı
+
+  *X değeri kişinin bilirkişi hesaplama tarihindeki bilinmeyen dönem başlangıcındaki yaşıdır.   
+
+Bakiye maluliyet tazminatı hesaplamasında; daha önce malule sigorta şirketi tarafından kaza sonucu bir veya birden fazla ödeme yapıldı ise, söz konusu ödeme tutarı veya tutarları %9 yasal faiz ile bilirkişi raporu tarihine çekilerek rapor tarihli değerleri elde edilir; daha sonra, bu tutar hesaplanan aktüeryal tazminat toplamından düşülerek malule ödenecek bakiyet maluliyet tazminat tutarı bulunur. Ayrıca, şirket tarafından bir ödeme yapıldı ise öncelikle şirket ödeme tarihi itibariyle hesaplama yapılır, şayet şirket ödemesi ile yapılan hesap farklı çıkar ise bu durumda bilirkişi rapor tarihi itibariyle tekrar hesap yapılır. 
+\
+
+## DOSYA KAPSAMINDA ELDE EDİLEN PARAMETRİK VERİLER
+
+Tazminat hesabında kullanılacak parametrelerin değerleri bilirkişiliğimize iletilen dosya kapsamında taranmış ve detaylı olarak her bir parametre değeri aşağıdaki tabloda verilmektedir.
+
+
+
+
+```{r echo=FALSE}
+
+knitr::kable(ortak_veri_tbl$parametre_tablosu, caption = "HESAPLAMA PARAMETRELERİ")
+
+```
+
+
+
+## AKTÜERYAL HESAPLAMA
+
+### Bilinen Dönem Hesaplaması:
+Kaza tarihinden geçici iş göremezlik süresi ve hemen akabinde sürekli maluliyet başlangıcı ile bilirkişi hesaplama tarihi arasındaki sürede malulün yıllar itibariyle gelir bilgisi, maluliyet oranı, şirket kusur oranı kullanılarak yapılan Bilinen Dönem tazminat tutarları aşağıdaki tabloda yıl bazında detaylı olarak verilmektedir.
+
+
+
+```{r echo=FALSE}
+
+knitr::kable(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl), caption = "Hesap Tarihi - Geçici Maluliyet Tablosu")
+
+gecici_donem_tazminat <- sum(HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl)$Donem_Tazminat)
+
+str_glue("{ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {gecici_donem_tazminat} TL olarak hesaplanmıştır.")
+
+
+```
+
+
+
+
+```{r echo=FALSE}
+
+kalan_tazminat <- gecici_donem_tazminat - sgk_odeme_tutari
+
+if (sgk_odeme_tutari > 0 ) {
+    str_glue("Bununla birlikte SGK tarafından {sgk_odeme_tutari} TL tutarında ödeme yapıldığı tespit edilmiştir. Hesaplanan geçici dönem tazminatı {kalan_tazminat} TL'dir.bu nu kullan") } else {str_glue(" ")}
+
+```
+
+
+## SONUÇ
+
+
+```{r echo=FALSE}
+
+str_glue("Bilirkişiliğimize iletilen dosya kapsamında yapılan inceleme neticesinde elde edilen hesaplama parametreleri kapsamında gerçekleşen kazada malul kalan {Ad_Soyad} için hesaplanan geçici iş göremezlik tazminatı bilirkişi hesap tarihi itibariyle aşağıda belirtilmiştir;")
+
+```
+
+
+```{r echo=FALSE}
+
+
+str_glue("* {ortak_veri_tbl$Gecici_Maluliyet_sure} aylık Geçici İş Göremezlik Tazminatı {kalan_tazminat} TL olarak hesaplanmıştır.")
+
+```
+
+
+
+Arz ederim.
+
+
+
+**Bilirkişi: Erdener USTA**
+**(Lisanslı Aktüer-Sicil No: 132)**
+**(Tahkim Sicil No: 11524)**

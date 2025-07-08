@@ -23,7 +23,7 @@ Sys.setlocale(locale = "Turkish")
 
 # VERİ GİRİŞ TABLOSU ----
 
-dosya_bilgiler <- read_excel("../gewend_proinsure/data/dosya_bilgiler.xlsx", sheet = "Sayfa1")
+dosya_bilgiler <- read_excel("data/dosya_bilgiler.xlsx", sheet = "Sayfa1")
 
 ortak_data_list <- list(data = dosya_bilgiler[4, ], 
                         yasam_tablosu = "TRH-2010")
@@ -36,7 +36,7 @@ ortak_data_list <- list(data = dosya_bilgiler[4, ],
 
 ortak_veri_tablosu <- function(data, yasam_tablosu) {
   
-  Asgari_Tablo <- read_excel("../GEWEND_PROINSURE_MAIN/data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
+  Asgari_Tablo <- read_excel("data/Asgari_Ucret_Tablosu_rvz.xlsx", sheet = "Program")
   # Teminat_Limit_Tablosu <- read_excel("../gewend_proinsure/data/Teminat_Limit_Tablosu_rvz.xlsx", sheet = "Teminat")
   
   Teminat_Limit_Tablosu <- tibble::tribble(
@@ -180,15 +180,15 @@ ortak_veri_tablosu <- function(data, yasam_tablosu) {
   ## Hesaplama Tarihine göre beklenen ömür ----
   
   PR_TRH_2010 <- if (Yasam_Tablosu == "TRH-2010") {
-    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TRH-2010")
+    read_excel("data/All_Tables.xlsx", sheet = "TRH-2010")
   } else if  (Yasam_Tablosu == "TUIK_20-22") {
-    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_20-22")
+    read_excel("data/All_Tables.xlsx", sheet = "TUIK_20-22")
   } else if (Yasam_Tablosu == "TUIK_19-21") {
-    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_19-21")
+    read_excel("data/All_Tables.xlsx", sheet = "TUIK_19-21")
   } else if (Yasam_Tablosu == "TUIK_18-20") {
-    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "TUIK_18-20")
+    read_excel("data/All_Tables.xlsx", sheet = "TUIK_18-20")
   } else {
-    read_excel("../GEWEND_PROINSURE_MAIN/data/All_Tables.xlsx", sheet = "PMF-1931")
+    read_excel("data/All_Tables.xlsx", sheet = "PMF-1931")
   }
   
   
