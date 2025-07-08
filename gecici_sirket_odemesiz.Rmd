@@ -117,22 +117,6 @@ Kısmi_Odeme_Tutarı_2 <- params$PKısmi_Odeme_Tutarı_2
 Bakici_Gideri_Suresi_gun <- params$PBakici_Sure
 
 
-  # dosya_no <- as.character(params$PDosya_No)
-  # 
-  # 
-  # Gelir_Durumu <- params$PGelir
-  # Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
-  # Maluliyet_Oranı <- params$PMaluliyet_Orani
-  # Kusur_Oranı <- params$PKusur_Orani
-  # Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_sure
-  # Kısmi_Odeme_Sayısı <- params$PKısmi_Odeme_Sayısı
-  # Kısmi_Odeme_Tarihi_1 <- as.Date(params$PKısmi_Odeme_Tarihi_1)
-  # Kısmi_Odeme_Tutarı_1 <- params$PKısmi_Odeme_Tutarı_1
-  # Kısmi_Odeme_Tarihi_2 <- as.Date(params$PKısmi_Odeme_Tarihi_2)
-  # Kısmi_Odeme_Tutarı_2 <- params$PKısmi_Odeme_Tutarı_2
-  # Yasam_Tablosu <- params$PYasam_Tablosu
-  # Bakici_Gideri_Suresi_gun <- params$PBakici_Sure
-
 # Veri yapısını fonksiyonun beklediği formatta oluştur
 dosya_info <- tibble(
   "Dosya_No" = dosya_no,
