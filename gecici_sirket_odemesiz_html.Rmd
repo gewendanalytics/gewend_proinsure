@@ -1,0 +1,290 @@
+---
+title: "AKTÜERYAL BİLİRKİŞİ RAPORU"
+output: 
+  html_document:
+    theme: flatly
+    toc: false
+    fig.align: "center"
+    css: |
+      body {
+        font-family: 'Arial', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f9fa;
+        margin: 20px;
+      }
+      .header {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+      .section {
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .highlight {
+        background-color: #e3f2fd;
+        padding: 15px;
+        border-left: 4px solid #2196f3;
+        margin: 10px 0;
+      }
+      .result {
+        background-color: #e8f5e8;
+        padding: 15px;
+        border-left: 4px solid #4caf50;
+        margin: 10px 0;
+        font-weight: bold;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      .signature {
+        text-align: right;
+        margin-top: 40px;
+        font-style: italic;
+        color: #666;
+      }
+params:
+  PDosya_No: NULL
+  PAd_Soyad: NULL
+  PCinsiyet: NULL
+  PMaluliyet_Orani: NULL
+  PKusur_Orani: NULL
+  PKaza_Tarihi: NULL
+  PDogum_Tarihi: NULL
+  PKismi_Odeme_Sayisi: NULL
+  PKismi_Odeme_Tarihi_1: NULL
+  PKismi_Odeme_Tutari_1: NULL
+  PKismi_Odeme_Tarihi_2: NULL
+  PKismi_Odeme_Tutari_2: NULL
+  PGecici_Maluliyet_Sure: NULL
+  PBakici: NULL
+  PBakici_Sure: NULL
+  PGelir: NULL
+  PYasam_Tablosu: NULL
+  Psgk_odeme_tutar: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    eval = TRUE,
+    message = FALSE,
+    warning = FALSE,
+    dpi = 300,
+    fig.align = "center"
+)
+
+Sys.setlocale(locale = "Turkish")
+
+# Load Libraries & Files
+library(readxl)
+library(tidyr)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(scales)
+library(formattable)
+library(knitr)
+library(kableExtra)
+```
+
+<div class="header">
+<h1>AKTÜERYAL BİLİRKİŞİ RAPORU</h1>
+<p>Geçici İş Göremezlik Tazminatı Hesaplama Raporu</p>
+</div>
+
+```{r include=FALSE}
+# Dosya Bilgileri
+Teknik_Faiz <- 0
+pasif_donem_yas <- 60
+faiz_oranı <- 9
+
+# Kişisel Bilgiler
+dosya_no <- params$PDosya_No
+Ad_Soyad <- params$PAd_Soyad
+Cinsiyet <- params$PCinsiyet
+Dogum_Tarihi <- as.Date(params$PDogum_Tarihi)
+Gelir <- params$PGelir
+Kaza_Tarihi <- as.Date(params$PKaza_Tarihi)
+Maluliyet_Oranı <- params$PMaluliyet_Orani
+Kusur_Oranı <- params$PKusur_Orani
+Gecici_Maluliyet_sure <- params$PGecici_Maluliyet_Sure
+Yasam_Tablosu <- params$PYasam_Tablosu
+sgk_odeme_tutari <- params$Psgk_odeme_tutar
+Kısmi_Odeme_Tarihi_1 <- as.Date(params$PKismi_Odeme_Tarihi_1)
+Kısmi_Odeme_Tarihi_2 <- as.Date(params$PKismi_Odeme_Tarihi_2)
+Kısmi_Odeme_Tutarı_1 <- params$PKısmi_Odeme_Tutarı_1
+Kısmi_Odeme_Tutarı_2 <- params$PKısmi_Odeme_Tutarı_2
+Bakici_Gideri_Suresi_gun <- params$PBakici_Sure
+
+# Dummy function for demonstration - replace with your actual functions
+ortak_veri_tablosu <- function(data, yasam_tablosu) {
+  
+  # Tarihleri düzgün formatlayın
+  dogum_tarihi_formatted <- if(is.na(Dogum_Tarihi) || is.null(Dogum_Tarihi)) {
+    "-"
+  } else {
+    format(as.Date(Dogum_Tarihi), "%d.%m.%Y")
+  }
+  
+  kaza_tarihi_formatted <- if(is.na(Kaza_Tarihi) || is.null(Kaza_Tarihi)) {
+    "-"
+  } else {
+    format(as.Date(Kaza_Tarihi), "%d.%m.%Y")
+  }
+  
+  list(
+    parametre_tablosu = data.frame(
+      Parametre = c("Dosya No", "Ad Soyad", "Cinsiyet", "Doğum Tarihi", "Kaza Tarihi", 
+                   "Maluliyet Oranı", "Kusur Oranı", "Geçici Maluliyet Süresi", "Yaşam Tablosu"),
+      Değer = c(dosya_no, Ad_Soyad, Cinsiyet, dogum_tarihi_formatted, kaza_tarihi_formatted,
+               paste0("%", Maluliyet_Oranı), paste0("%", Kusur_Oranı), 
+               paste0(Gecici_Maluliyet_sure, " ay"), Yasam_Tablosu),
+      stringsAsFactors = FALSE
+    ),
+    Gecici_Maluliyet_sure = Gecici_Maluliyet_sure
+  )
+}
+
+HT_Tam_Maluliyet_Donemi_Tablosu <- function(data) {
+  data.frame(
+    Yıl = c("2024", "2025"),
+    Gelir = c("50.000 TL", "55.000 TL"),
+    Maluliyet_Oranı = c(paste0("%", Maluliyet_Oranı), paste0("%", Maluliyet_Oranı)),
+    Kusur_Oranı = c(paste0("%", Kusur_Oranı), paste0("%", Kusur_Oranı)),
+    Donem_Tazminat = c(15000, 16500),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Veri yapısını fonksiyonun beklediği formatta oluştur
+dosya_info <- tibble(
+  "Dosya_No" = dosya_no,
+  "Ad_Soyad" = Ad_Soyad,
+  "Dogum_Tarihi" = Dogum_Tarihi,
+  "Gelir" = Gelir,
+  "Cinsiyet" = Cinsiyet, 
+  "Kaza_Tarihi" = Kaza_Tarihi,
+  "Maluliyet_Orani" = Maluliyet_Oranı,
+  "Kusur_Orani" = Kusur_Oranı,
+  "Gecici_Maluliyet_sure" = Gecici_Maluliyet_sure,
+  "Rapor_Turu" = "Geçici (Şirket Ödemesiz)",
+  "Kısmi_Odeme_Sayısı" = NA,
+  "Kısmi_Odeme_Tarihi_1" = NA,
+  "Kısmi_Odeme_Tutarı_1" = NA,
+  "Kısmi_Odeme_Tarihi_2" = NA,
+  "Kısmi_Odeme_Tutarı_2" = NA,
+  "Bakıcı_Gideri_Süresi_(gun)" = NA
+)
+
+ortak_data_list2 <- list(data = dosya_info, 
+                        yasam_tablosu = Yasam_Tablosu)
+
+ortak_veri_tbl2 <- ortak_veri_tablosu(ortak_data_list2$data, ortak_data_list2$yasam_tablosu)
+```
+
+<div class="section">
+## GENEL BİLGİLER
+
+<div class="highlight">
+Sayın Hakemliğinizce tarafımıza iletilen dosya kapsamında geçici iş göremezlik tazminatı, sürekli maluliyet tazminatı ve geçici bakıcı gideri tazminatı hesaplaması Bilirkişiliğimiz teknik bilgisi kapsamında hesaplanmıştır.
+</div>
+
+Dosya kapsamında elde edilen bilgiler kapsamında yapılan hesaplamaya ilişkin tüm bilgiler ve aktüeryal hesaplama parametreleri, formülleri ve hesaplama prensipleri ile malul için hesaplanan tazminat tutarına ilişkin bilgiler açık ve anlaşılabilir olacak şekilde ilerleyen bölümlerde detaylandırılmaktadır.
+</div>
+
+<div class="section">
+## HESAPLAMA PRENSİPLERİ
+
+Aktüeryal olarak maluliyet tazminatı hesaplaması, mevzuata uygun olarak temin edilecek maluliyet oranına sahip kişinin kaza tarihinden itibaren muhtemel yaşam süresi boyunca elde edeceği gelirden kaza nedeniyle ne kadar tutarda mağdur kalacağının tahminini içermektedir.
+
+Söz konusu tahmin yapılırken temel olarak iki bölümde hesaplama yapılmaktadır:
+
+**Bilinen dönem hesaplaması:** Malulün kaza tarihinden itibaren bilirkişi raporunun hazırlandığı tarihe kadar olan bölümde (bilinen dönem hesaplaması) sahip olduğu bilinen geliri, kazada kusuru (kusur oranı), kaza sonucu oluşan maluliyet oranı dikkate alınarak bilinen dönem tazminatı herhangi bir aktüeryal tahmin yapılmadan hesaplanır.
+
+**Bilinmeyen dönem hesaplaması:** Bu kısım bilirkişi raporunun hazırlandığı tarihten itibaren malulün muhtemel yaşam süresi boyunca yapılacak hesaplamayı içermektedir.
+</div>
+
+<div class="section">
+## DOSYA KAPSAMINDA ELDE EDİLEN PARAMETRİK VERİLER
+
+Tazminat hesabında kullanılacak parametrelerin değerleri bilirkişiliğimize iletilen dosya kapsamında taranmış ve detaylı olarak her bir parametre değeri aşağıdaki tabloda verilmektedir.
+
+```{r}
+kable(ortak_veri_tbl2$parametre_tablosu, 
+      caption = "HESAPLAMA PARAMETRELERİ",
+      format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = TRUE)
+```
+</div>
+
+<div class="section">
+## AKTÜERYAL HESAPLAMA
+
+### Bilinen Dönem Hesaplaması:
+Kaza tarihinden geçici iş göremezlik süresi ve hemen akabinde sürekli maluliyet başlangıcı ile bilirkişi hesaplama tarihi arasındaki sürede malulün yıllar itibariyle gelir bilgisi, maluliyet oranı, şirket kusur oranı kullanılarak yapılan Bilinen Dönem tazminat tutarları aşağıdaki tabloda yıl bazında detaylı olarak verilmektedir.
+
+```{r}
+hesap_tablosu <- HT_Tam_Maluliyet_Donemi_Tablosu(ortak_veri_tbl2)
+
+kable(hesap_tablosu, 
+      caption = "Hesap Tarihi - Geçici Maluliyet Tablosu",
+      format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = TRUE)
+
+gecici_donem_tazminat <- sum(hesap_tablosu$Donem_Tazminat)
+```
+
+<div class="result">
+`r ortak_veri_tbl2$Gecici_Maluliyet_sure` aylık Geçici İş Göremezlik Tazminatı `r format(gecici_donem_tazminat, big.mark = ".", decimal.mark = ",")` TL olarak hesaplanmıştır.
+</div>
+
+```{r}
+kalan_tazminat <- gecici_donem_tazminat - ifelse(is.null(sgk_odeme_tutari), 0, sgk_odeme_tutari)
+
+if (!is.null(sgk_odeme_tutari) && sgk_odeme_tutari > 0) {
+  cat(paste0("Bununla birlikte SGK tarafından ", format(sgk_odeme_tutari, big.mark = ".", decimal.mark = ","), 
+             " TL tutarında ödeme yapıldığı tespit edilmiştir. Hesaplanan geçici dönem tazminatı ", 
+             format(kalan_tazminat, big.mark = ".", decimal.mark = ","), " TL'dir."))
+}
+```
+</div>
+
+<div class="section">
+## SONUÇ
+
+<div class="result">
+Bilirkişiliğimize iletilen dosya kapsamında yapılan inceleme neticesinde elde edilen hesaplama parametreleri kapsamında gerçekleşen kazada malul kalan **`r Ad_Soyad`** için hesaplanan geçici iş göremezlik tazminatı bilirkişi hesap tarihi itibariyle aşağıda belirtilmiştir:
+
+* **`r ortak_veri_tbl2$Gecici_Maluliyet_sure` aylık Geçici İş Göremezlik Tazminatı: `r format(kalan_tazminat, big.mark = ".", decimal.mark = ",")` TL**
+</div>
+
+Arz ederim.
+</div>
+
+<div class="signature">
+**Bilirkişi: Erdener USTA**<br>
+**(Lisanslı Aktüer-Sicil No: 132)**<br>
+**(Tahkim Sicil No: 11524)**
+</div>
