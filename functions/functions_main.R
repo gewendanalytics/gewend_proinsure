@@ -1,22 +1,22 @@
 # 
-# # PACKAGES ----
-# packages <- c(
-#   "quarto", "shiny", "shinyWidgets", "shinyjs", "tidyverse", "tidyquant", "htmltools",
-#   "shinythemes", "shinydashboard", "shinyBS", "reactable", "formattable",
-#   "plotly", "ggplot2", "ggpubr", "viridis", "hrbrthemes", "scales",
-#   "shinyalert", "reactable", "formattable", "DT", "kableExtra",
-#   "writexl", "readxl", "collapsibleTree", "highcharter", "lubridate",
-#   "bslib", "bsicons", "sf", "mapview", "leaflet", "modelr", "caret",
-#   "billboarder", "collapsibleTree", "echarts4r", "shinyMatrix", "glue", "gemini.R",
-#   "DT", "rhandsontable", "bslib", "visNetwork", "lpSolve", "geosphere", "osrm", "leaflet.extras", "colorspace","RColorBrewer",
-#   "modelr", "caret", "billboarder", "collapsibleTree", "echarts4r", "shinyMatrix", "shinycssloaders", "shinyauthr"
-# )
-# 
-# # Load packages
-# lapply(packages, library, character.only = TRUE)
-# library(collapsibleTree)
-# 
-# Sys.setlocale(locale = "Turkish")
+# PACKAGES ----
+packages <- c(
+  "quarto", "shiny", "shinyWidgets", "shinyjs", "tidyverse", "tidyquant", "htmltools",
+  "shinythemes", "shinydashboard", "shinyBS", "reactable", "formattable",
+  "plotly", "ggplot2", "ggpubr", "viridis", "hrbrthemes", "scales",
+  "shinyalert", "reactable", "formattable", "DT", "kableExtra",
+  "writexl", "readxl", "collapsibleTree", "highcharter", "lubridate",
+  "bslib", "bsicons", "sf", "mapview", "leaflet", "modelr", "caret",
+  "billboarder", "collapsibleTree", "echarts4r", "shinyMatrix", "glue", "gemini.R",
+  "DT", "rhandsontable", "bslib", "visNetwork", "lpSolve", "geosphere", "osrm", "leaflet.extras", "colorspace","RColorBrewer",
+  "modelr", "caret", "billboarder", "collapsibleTree", "echarts4r", "shinyMatrix", "shinycssloaders", "shinyauthr"
+)
+
+# Load packages
+lapply(packages, library, character.only = TRUE)
+library(collapsibleTree)
+
+Sys.setlocale(locale = "Turkish")
 
 
 
@@ -418,7 +418,7 @@ HT_Bilinen_Donem_Tablosu <- function(data = ortak_veri_tbl){
   
 }
 
-HT_Bilinen_Donem_Tablosu(ortak_veri_tbl)
+
 
 ## HESAP TARİHİ BİLİNMEYEN DÖNEM TABLOSU ----
 
